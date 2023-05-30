@@ -36,6 +36,7 @@ import gevent
 from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 from pydnp3 import opendnp3
 from volttron.client.vip.agent import Agent, Core, RPC
+import subprocess
 
 setup_logging()
 _log = logging.getLogger(__name__)
@@ -92,6 +93,19 @@ class Dnp3OutstationAgent(Agent):
                                contents: Dict) -> None:
         pass
 
+    @staticmethod
+    def boptest_up(testcase: str, docker_compose_file_path: str, is_verbose: bool = True) -> str:
+        """
+        EXAMPLE
+        boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest/docker-compose.yml")
+        """
+        if is_verbose:
+            verbose = "--verbose"
+        else:
+            verbose = ""
+        cmd = f"TESTCASE={testcase} docker-compose {verbose} -f {docker_compose_file_path} up -d"
+        return subprocess.run([cmd], shell=True).stdout.decode("utf-8")
+
     @Core.receiver("onstart")
     def onstart(self, sender, **kwargs):
         """
@@ -102,8 +116,7 @@ class Dnp3OutstationAgent(Agent):
         Usually not needed if using the configuration store.
         """
 
-        # for dnp3 outstation
-        self.outstation_application.start()
+        self.boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest/docker-compose.yml")
 
         # Example publish to pubsub
         # self.vip.pubsub.publish('pubsub', "some/random/topic", message="HI!")
