@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Platform Driver &mdash; VOLTTRON DNP3 Outstation Agent 0.1 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VOLTTRON DNP3 Outstation Agent
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Platform Driver</a><ul>
+<li><a class="reference internal" href="#how-does-it-work">How does it work?</a></li>
+<li><a class="reference internal" href="#configuration-and-installation">Configuration and Installation</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li><a class="reference internal" href="#platform-driver-agent-configuration">Platform Driver Agent Configuration</a></li>
+<li><a class="reference internal" href="#device-configuration">Device Configuration</a><ul>
+<li><a class="reference internal" href="#device-grouping">Device Grouping</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#registry-configuration-file">Registry Configuration File</a></li>
+<li><a class="reference internal" href="#adding-device-configurations-to-the-configuration-store">Adding Device Configurations to the Configuration Store</a><ul>
+<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#converting-old-style-configuration">Converting Old Style Configuration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id2">Device Scalability Settings</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#polling">Polling</a></li>
+<li><a class="reference internal" href="#json-rpc-endpoints">JSON-RPC Endpoints</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#driver-override-condition">Driver Override Condition</a><ul>
+<li><a class="reference internal" href="#set-override-on">Set Override On</a></li>
+<li><a class="reference internal" href="#set-override-off">Set Override Off</a></li>
+<li><a class="reference internal" href="#get-override-devices">Get Override Devices</a></li>
+<li><a class="reference internal" href="#get-override-patterns">Get Override Patterns</a></li>
+<li><a class="reference internal" href="#clear-overrides">Clear Overrides</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VOLTTRON DNP3 Outstation Agent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Platform Driver</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/agent-docs/volttron-platform-driver/docs/source/platform-driver-agent.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="platform-driver">
+<span id="platform-driver-agent"></span><h1>Platform Driver<a class="headerlink" href="#platform-driver" title="Permalink to this headline"></a></h1>
+<p>The Platform Driver Agent manages all device communication. This agent automatically collects publishes data from
+configured devices to the message bus, generally on a specified interval. It also features a number of RPC endpoints for
+getting and setting points on devices.</p>
+<section id="how-does-it-work">
+<h2>How does it work?<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline"></a></h2>
+<p>Drivers are special-purpose agents for device communication. Unlike most agents, drivers run as separate threads under
+the Platform Driver (typically agents are spawned as their own process). The Platform Driver creates a driver instance
+for each <a class="reference internal" href="#device-configuration-file"><span class="std std-ref">device configuration</span></a> in the platform driver’s configuration store. While
+running, the driver periodically polls (“scrapes”) data from the device and publishes it to the message bus. The driver
+additionally handles ad-hoc read and write requests issued by RPC through the <span class="xref std std-ref">Actuator</span> or
+Platform Driver agents. When device configurations are removed from the store, the corresponding driver instance is also
+removed by the Platform Driver.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Earlier versions of VOLTTRON referred to all data collection from a device as “scraping”. The word scraping
+most typically connotes the programmatic extraction of data from an unconventional source, such as a web page.
+While a driver might be written to do this, most read data from devices designed with the purpose of answering such
+queries. The documentation has, therefore, been update to use the more precise language. The word “pull” or “query”
+are used for the activity of discretely requesting data from a remote, while the word “polling” is used where the
+data is requested in a periodic loop. For reasons of compatability, most settings and methods which affect polling
+behavior retain the word “scrape” in their names. The words “poll” and “scape”, as used here, may be considered
+interchangeable.</p>
+</div>
+<p>Actual communication with devices is handled by the driver’s “Interface” class. An Interface is a Python class
+which serves as the interface between the driver and the device.  The Interface does this by implementing a set of
+well-defined actions using the communication paradigms and protocols (e.g., BACnet, Modbus, or HTTP) used by the
+device. Interfaces wrap protocol-specific functionality in standard methods to be used by the driver. Information on
+developing new driver interfaces can be found <span class="xref std std-ref">here</span>.</p>
+</section>
+<section id="configuration-and-installation">
+<span id="platform-driver-configuration"></span><h2>Configuration and Installation<a class="headerlink" href="#configuration-and-installation" title="Permalink to this headline"></a></h2>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h3>
+<p>The platform driver agent may be installed using vctl:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>vctl<span class="w"> </span>install<span class="w"> </span>volttron-platform-driver<span class="w"> </span>--vip-identity<span class="w"> </span>platform.driver<span class="w"> </span>--tag<span class="w"> </span>driver
+</pre></div>
+</div>
+<p>Additionally, to communicate with any devices, it will be necessary to install one or more interface libraries.
+These may be installed from pypi using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>volttron-lib-fake-driver
+</pre></div>
+</div>
+<p>Officially maintained driver interfaces (with corresponding package names) include:</p>
+<ul class="simple">
+<li><p><span class="xref std std-ref">Fake Driver</span>: volttron-lib-fake-driver</p></li>
+<li><p><span class="xref std std-ref">BACnet Driver</span>: volttron-lib-bacnet-driver</p></li>
+<li><p><span class="xref std std-ref">DNP3 Driver</span>: volttron-lib-dnp3-driver</p></li>
+<li><p><span class="xref std std-ref">PyModbus Driver</span>: volttron-lib-modbus-driver</p></li>
+<li><p><span class="xref std std-ref">ModbusTk Driver</span>: volttron-lib-modbustk-driver</p></li>
+</ul>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline"></a></h3>
+<p>The Platform Driver requires use of the configuration store and expects three types of configuration file:</p>
+<ul class="simple">
+<li><p><strong>Platform Driver Agent Configuration (one for the agent):</strong> global settings for all drivers.</p></li>
+<li><p><strong>Device Configuration (one per device):</strong> settings for the driver to manage an individual device.</p></li>
+<li><p><strong>Registry (up to one per device):</strong> contains the settings for each individual data point for a device or class of
+device. Some drivers may require one per registry per individual device, but often one registry may be shared by
+multiple devices of the same type.</p></li>
+</ul>
+<section id="platform-driver-agent-configuration">
+<h4>Platform Driver Agent Configuration<a class="headerlink" href="#platform-driver-agent-configuration" title="Permalink to this headline"></a></h4>
+<p>The Platform Driver Agent configuration consists of general settings for all devices. The default values of the Platform
+Driver should be sufficient for most users. If changes are made to any of the global settings, this configuration should
+be saved to the configuration store with the name <cite>config</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>vctl<span class="w"> </span>config<span class="w"> </span>store<span class="w"> </span>platform.driver<span class="w"> </span>config<span class="w"> </span>path/to/edited/config/file
+</pre></div>
+</div>
+<p>The following example sets the driver_scrape_interval to 0.05 seconds or 20 devices per second:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;driver_scrape_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.05</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;publish_breadth_first_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;publish_depth_first&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;publish_breadth_first&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;publish_depth_first_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;group_offset_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul>
+<li><p><strong>driver_scrape_interval</strong> - Sets the interval between devices polls. Defaults to 0.02 or 50 devices per second.
+This is useful for when the platform polls too many devices at once resulting in failed polls. To spread polling of n
+devices evenly throughout a polling cycle, this may be set to:</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">length_of_cycle</span> <span class="o">/</span> <span class="n">n</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>If multiple groups are used, n would be the size of the largest group.</p>
+</li>
+<li><p><strong>group_offset_interval</strong> - Sets the delay between when each group of devices begins to be polled. There is no effect
+if all devices are in the same group. Group 0 will begin at <code class="docutils literal notranslate"><span class="pre">t=0</span></code>. The first device of each subsequent group will
+be polled starting at</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">group_number</span> <span class="o">*</span> <span class="n">group_offset_interval</span><span class="o">.</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p id="device-scalability-settings">To improve the scalability of the platform unneeded device state publishes for all devices can be turned on and off.
+Configured at the agent level, these settings will apply to all devices, but may be overridden on a device-by-device
+manner in the <a class="reference internal" href="#device-configuration-file"><span class="std std-ref">Device Configuration</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Depth first publishes have topics with the point name at the end (i.e., “campus/building/device/point”).
+Breadth first publishes have topics with the point name at the beginnning (i.e., “point/device/building/campus”).</p>
+</div>
+<ul class="simple">
+<li><p><strong>publish_depth_first_all</strong> (default <cite>True</cite>) - Enable “depth first” publish of all points to a single topic.</p></li>
+<li><p><strong>publish_breadth_first_all</strong> - (default <cite>False</cite>) Enable “breadth first” publish of all points to a single topic.</p></li>
+<li><p><strong>publish_depth_first</strong> - (default <cite>False</cite>) Enable separate “depth first” device state publishes for each point.</p></li>
+<li><p><strong>publish_breadth_first</strong> - (default <cite>False</cite>) Enable separate “breadth first” device state publishes for each point.</p></li>
+</ul>
+<p>An example <a class="reference external" href="https://raw.githubusercontent.com/eclipse-volttron/volttron-platform-driver/main/config">platform driver configuration file</a>, with default settings can be found in the volttron-platform-driver
+repository.</p>
+</section>
+<section id="device-configuration">
+<span id="device-configuration-file"></span><h4>Device Configuration<a class="headerlink" href="#device-configuration" title="Permalink to this headline"></a></h4>
+<p>Each device must have a corresponding device configuration in the platform driver configuration store.
+The topic used to reference the device is derived from the name of this device configuration. For instance,
+to follow the common topic convention of <code class="docutils literal notranslate"><span class="pre">{campus}/{building}/{unit}</span></code>, the device configuration file should be given
+the name <code class="docutils literal notranslate"><span class="pre">devices/{campus}/{building}/{unit}</span></code> in the configuration store:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>vctl<span class="w"> </span>config<span class="w"> </span>store<span class="w"> </span>platform.driver<span class="w"> </span>devices/PNNL/Building1/AHU2<span class="w"> </span>path/to/config/file.json
+</pre></div>
+</div>
+<p>Each device configuration has the following form:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;driver_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;device_address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.1.1.5&quot;</span><span class="p">,</span>
+<span class="w">                      </span><span class="nt">&quot;device_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;driver_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bacnet&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;registry_config&quot;</span><span class="p">:</span><span class="s2">&quot;config://registry_configs/vav.csv&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;heart_beat_point&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;heartbeat&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;group&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The following settings are required for all device configurations:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>driver_config</strong> - Interface specific settings. See documentation for each interface type.</p></li>
+<li><p><strong>driver_type</strong> - Driver interface to use for this device: bacnet, modbus, fake, etc.</p></li>
+<li><p><strong>registry_config</strong> - Reference to a configuration file in the configuration store for points
+on the device. See the <a class="reference internal" href="#registry-configuration-file">Registry-Configuration-File</a> section below.</p></li>
+</ul>
+</div></blockquote>
+<p>These settings are optional:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>interval</strong> - Period (in seconds) on which to poll the device and publish the results. Defaults to 60 seconds.</p></li>
+<li><p><strong>heart_beat_point</strong> - A Point which to toggle to indicate a heartbeat to the device. A point with this <code class="docutils literal notranslate"><span class="pre">Volttron</span>
+<span class="pre">Point</span> <span class="pre">Name</span></code> must exist in the registry.  If this setting is missing the driver will not send a heart beat signal
+to the device.  Heart beats are triggered by the <span class="xref std std-ref">Actuator Agent</span> which must be running to
+use this feature.</p></li>
+<li><p><strong>group</strong> - Group this device belongs to. (Defaults to 0)</p></li>
+</ul>
+</div></blockquote>
+<section id="device-grouping">
+<h5>Device Grouping<a class="headerlink" href="#device-grouping" title="Permalink to this headline"></a></h5>
+<p>Devices may be assigned to groups to separate them logically when they are polled. This is done by configuration of two
+settings:</p>
+<ol class="arabic simple">
+<li><p>Each device configuration may have a <cite>group</cite> setting, which should be an integer greater than or equal to 0.</p></li>
+</ol>
+<p>#. <cite>group_offset_interval</cite>, in the platform driver agent configuration is the number of seconds to delay the start of
+each group from the previous group. When using this setting, assign devices only consecutive <cite>group</cite> values starting
+from 0.</p>
+<p>An independent polling schedule is created for each group, where the first is polled at <cite>group_offset_interval</cite> * <cite>group</cite>
+seconds after the first devices of group 0. Each device within the group will then be polled <cite>driver_scrape_interval</cite>
+seconds apart.</p>
+<p>This is most commonly useful in two cases:</p>
+<ul class="simple">
+<li><p>To ensure that certain devices are polled in close proximity to each other, you can put them in their own
+group. They are then guaranteed to be polled <cite>driver_scrape_interval</cite> seconds apart.</p></li>
+<li><p>You may poll devices on different networks in parallel for performance.  For instance BACnet devices behind a single
+MSTP router need to be polled slowly and serially, but devices behind different routers may be polled in parallel.
+Grouping devices by router will do this automatically.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="registry-configuration-file">
+<span id="id1"></span><h3>Registry Configuration File<a class="headerlink" href="#registry-configuration-file" title="Permalink to this headline"></a></h3>
+<p>Registry configuration files setup each individual point on a device. Typically this file will be in CSV format, but the
+exact format is driver specific.  See the section for a particular driver for the registry configuration format.</p>
+<p>The following is a simple example of a Modbus registry configuration file:</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Catalyst 371</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Reference Point Name</p></th>
+<th class="head"><p>Volttron Point Name</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Units Details</p></th>
+<th class="head"><p>Modbus Register</p></th>
+<th class="head"><p>Writable</p></th>
+<th class="head"><p>Point Address</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>CO2Sensor</p></td>
+<td><p>ReturnAirCO2</p></td>
+<td><p>PPM</p></td>
+<td><p>0.00-2000.00</p></td>
+<td><p>&gt;f</p></td>
+<td><p>FALSE</p></td>
+<td><p>1001</p></td>
+<td></td>
+<td><p>CO2 Reading 0.00-2000.0 ppm</p></td>
+</tr>
+<tr class="row-odd"><td><p>CO2Stpt</p></td>
+<td><p>ReturnAirCO2Stpt</p></td>
+<td><p>PPM</p></td>
+<td><p>1000.00 (default)</p></td>
+<td><p>&gt;f</p></td>
+<td><p>TRUE</p></td>
+<td><p>1011</p></td>
+<td><p>1000</p></td>
+<td><p>Setpoint to enable demand control ventilation</p></td>
+</tr>
+<tr class="row-even"><td><p>HeatCall2</p></td>
+<td><p>HeatCall2</p></td>
+<td><p>On / Off</p></td>
+<td><p>on/off</p></td>
+<td><p>BOOL</p></td>
+<td><p>FALSE</p></td>
+<td><p>1114</p></td>
+<td></td>
+<td><p>Status indicator of heating stage 2 need</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="adding-device-configurations-to-the-configuration-store">
+<span id="adding-devices-to-config-store"></span><h3>Adding Device Configurations to the Configuration Store<a class="headerlink" href="#adding-device-configurations-to-the-configuration-store" title="Permalink to this headline"></a></h3>
+<p>Configurations are added to the Configuration Store using the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>volttron-ctl<span class="w"> </span>config<span class="w"> </span>store<span class="w"> </span>platform.driver<span class="w"> </span>&lt;name&gt;<span class="w"> </span>&lt;file<span class="w"> </span>name&gt;<span class="w"> </span>&lt;file<span class="w"> </span>type&gt;
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>name</strong> - The name used to refer to the file from the store.</p></li>
+<li><p><strong>file name</strong> - A file containing the contents of the configuration.</p></li>
+<li><p><strong>file type</strong> - <code class="docutils literal notranslate"><span class="pre">--raw</span></code>, <code class="docutils literal notranslate"><span class="pre">--json</span></code>, or <code class="docutils literal notranslate"><span class="pre">--csv</span></code>. Indicates the type of the file. Defaults to <code class="docutils literal notranslate"><span class="pre">--json</span></code>.</p></li>
+</ul>
+<p>The main configuration must have the name <code class="docutils literal notranslate"><span class="pre">config</span></code></p>
+<p>Device configuration but <strong>not</strong> registry configurations must have a name prefixed with <code class="docutils literal notranslate"><span class="pre">devices/</span></code>.  Scripts that
+automate the process will prefix registry configurations with <code class="docutils literal notranslate"><span class="pre">registry_configs/</span></code>, but that is not a requirement for
+registry files.</p>
+<p>The name of the device’s configuration in the store is used to create the topic used to reference the device. For
+instance, a configuration named <cite>devices/PNNL/ISB1/vav1</cite> will publish scrape results to <cite>devices/PNNL/ISB1/vav1</cite> and
+is accessible with the Actuator Agent via <cite>PNNL/ISB1/vav1</cite>.</p>
+<p>The name of a registry configuration must match the name used to refer to it in the driver configuration.  The reference
+is not case sensitive.</p>
+<p>If the Platform Driver Agent is running, any changes to the configuration store will immediately affect the running devices
+according to the changes.</p>
+<section id="example">
+<h4>Example<a class="headerlink" href="#example" title="Permalink to this headline"></a></h4>
+<p>Consider the following three configuration files:  A platform driver configuration called <cite>platform-driver.agent</cite>, a
+Modbus device configuration file called <cite>modbus_driver.config</cite> and corresponding Modbus registry configuration file called
+<cite>modbus_registry.csv</cite></p>
+<p>To store the platform driver configuration run the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>volttron-ctl<span class="w"> </span>config<span class="w"> </span>store<span class="w"> </span>platform.driver<span class="w"> </span>config<span class="w"> </span>platform-driver.agent
+</pre></div>
+</div>
+<p>To store the registry configuration run the command (note the <code class="docutils literal notranslate"><span class="pre">--csv</span></code> option):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>volttron-ctl<span class="w"> </span>config<span class="w"> </span>store<span class="w"> </span>platform.driver<span class="w"> </span>registry_configs/modbus_registry.csv<span class="w"> </span>modbus_registry.csv<span class="w"> </span>--csv
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <cite>registry_configs/modbus_registry.csv</cite> argument in the above command must match the reference to the
+<cite>registry_config</cite> found in <cite>modbus_driver.config</cite>.</p>
+</div>
+<p>To store the driver configuration run the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>volttron-ctl<span class="w"> </span>config<span class="w"> </span>store<span class="w"> </span>platform.driver<span class="w"> </span>devices/my_campus/my_building/my_device<span class="w"> </span>modbus_config.config
+</pre></div>
+</div>
+</section>
+<section id="converting-old-style-configuration">
+<h4>Converting Old Style Configuration<a class="headerlink" href="#converting-old-style-configuration" title="Permalink to this headline"></a></h4>
+<p>The new Platform Driver no longer supports the old style of device configuration.  The old <cite>device_list</cite> setting is
+ignored.</p>
+<p>To simplify updating to the new format, <cite>scripts/update_platform_driver_config.py</cite> is provided to automatically update to
+the new configuration format.</p>
+<p>With the platform running run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/update_platform_driver_config.py<span class="w"> </span>&lt;old<span class="w"> </span>configuration&gt;<span class="w"> </span>&lt;output&gt;
+</pre></div>
+</div>
+<p><cite>old_configuration</cite> is the main configuration file in the old format. The script automatically modifies the driver
+files to create references to CSV files and adds the CSV files with the appropriate name.</p>
+<p><cite>output</cite> is the target output directory.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">--keep-old</span></code> switch is used, the old configurations in the output directory (if any) will not be deleted before
+new configurations are created.  Matching names will still be overwritten.</p>
+<p>The output from <cite>scripts/update_platform_driver_config.py</cite> can be automatically added to the configuration store
+for the Platform Driver agent with <cite>scripts/install_platform_driver_configs.py</cite>.</p>
+<p>Creating and naming configuration files in the form needed by <cite>scripts/install_platform_driver_configs.py</cite> can speed up
+the process of changing and updating a large number of configurations. See the <code class="docutils literal notranslate"><span class="pre">--help</span></code> message for
+<cite>scripts/install_platform_driver_configs.py</cite> for more details.</p>
+</section>
+</section>
+<section id="id2">
+<h3>Device Scalability Settings<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
+<p>To improve the scalability of the platform, unneeded device state publishes for a device can be turned off.
+All of the following setting are optional and will override the value set in the main platform driver configuration.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>publish_depth_first_all</strong> - Enable “depth first” publish of all points to a single topic.</p></li>
+<li><p><strong>publish_breadth_first_all</strong> - Enable “breadth first” publish of all points to a single topic.</p></li>
+<li><p><strong>publish_depth_first</strong> - Enable “depth first” device state publishes for each point on the device.</p></li>
+<li><p><strong>publish_breadth_first</strong> - Enable “breadth first” device state publishes for each point on the device.</p></li>
+</ul>
+</div></blockquote>
+<p>It is common practice to set <cite>publish_breadth_first_all</cite>, <cite>publish_depth_first</cite>, and
+<cite>publish_breadth_first</cite> to <cite>False</cite> unless they are specifically needed by an agent running on
+the platform.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All Historian Agents require <cite>publish_depth_first_all</cite> to be set to <cite>True</cite> in order to capture data.</p>
+</div>
+</section>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h2>
+<p>After installing the Platform Driver and loading driver configs into the config store, the installed drivers begin
+polling and JSON-RPC endpoints become usable.</p>
+<section id="polling">
+<span id="device-state-publish"></span><h3>Polling<a class="headerlink" href="#polling" title="Permalink to this headline"></a></h3>
+<p>Once running, the Platform Driver will spawn drivers using the <cite>driver_type</cite> parameter of the
+<a class="reference internal" href="#device-configuration-file"><span class="std std-ref">driver configuration</span></a> and periodically poll devices for all point data specified in
+the <a class="reference internal" href="#registry-configuration-file"><span class="std std-ref">registry configuration</span></a> at the interval specified by the interval parameter
+of the driver configuration.</p>
+<p>By default, the value of each point on a device is published 4 different ways when the device state is published.
+Consider the following settings in a driver configuration stored under the name <code class="docutils literal notranslate"><span class="pre">devices/pnnl/isb1/vav1</span></code>:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;driver_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;device_address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.1.1.5&quot;</span><span class="p">,</span>
+<span class="w">                      </span><span class="nt">&quot;device_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">},</span>
+
+<span class="w">    </span><span class="nt">&quot;driver_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bacnet&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;registry_config&quot;</span><span class="p">:</span><span class="s2">&quot;config://registry_configs/vav.csv&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In the <cite>vav.csv</cite> file, a point has the name <cite>temperature</cite>.  For these examples the current value of the
+point on the device happens to be 75.2 and the meta data is</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;units&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>When the driver publishes the device state the following two things will be published for this point:</p>
+<blockquote>
+<div><p>A “depth first” publish to the topic <cite>devices/pnnl/isb1/vav1/temperature</cite> with the following message:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mf">75.2</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>A “breadth first” publish to the topic <cite>devices/temperature/vav1/isb1/pnnl</cite> with the following message:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mf">75.2</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>These publishes can be turned off by setting <cite>publish_depth_first</cite> and <cite>publish_breadth_first</cite> to <cite>false</cite>
+respectively.</p>
+</div></blockquote>
+<p>Also these two publishes happen once for all points:</p>
+<blockquote>
+<div><p>A “depth first” publish to the topic <cite>devices/pnnl/isb1/vav1/all</cite> with the following message:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">75.2</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;temperature&quot;</span><span class="p">:{</span><span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">},</span> <span class="o">...</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>A “breadth first” publish to the topic <cite>devices/all/vav1/isb1/pnnl</cite> with the following message:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">75.2</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;temperature&quot;</span><span class="p">:{</span><span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">},</span> <span class="o">...</span><span class="p">}]</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>These publishes can be turned off by setting <cite>publish_depth_first_all</cite> and <cite>publish_breadth_first_all</cite> to
+<code class="docutils literal notranslate"><span class="pre">false</span></code> respectively.</p>
+</div></blockquote>
+</section>
+<section id="json-rpc-endpoints">
+<h3>JSON-RPC Endpoints<a class="headerlink" href="#json-rpc-endpoints" title="Permalink to this headline"></a></h3>
+<p><strong>get_point</strong> - Returns the value of specified device set point</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>path</strong> - device topic string (typical format is devices/campus/building/device)</p></li>
+<li><p><strong>point_name</strong> - name of device point from registry configuration file</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<dl>
+<dt><strong>set_point</strong> - Set value on specified device set point. If global override is condition is set, raise OverrideError</dt><dd><p>exception.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>path</strong> - device topic string (typical format is devices/campus/building/device)</p></li>
+<li><p><strong>point_name</strong> - name of device point from registry configuration file</p></li>
+<li><p><strong>value</strong> - desired value to set for point on device</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is not recommended to call the <cite>set_point</cite> method directly.  It is recommended to instead use the
+<span class="xref std std-ref">Actuator</span> agent to set points on a device, using its scheduling capability.</p>
+</div>
+</div></blockquote>
+</dd>
+</dl>
+<p><strong>scrape_all</strong> - Returns values for all set points on the specified device.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>path</strong> - device topic string (typical format is devices/campus/building/device)</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>get_multiple_points</strong> - return values corresponding to multiple points on the same device</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>path</strong> - device topic string (typical format is devices/campus/building/device)</p></li>
+<li><p><strong>point_names</strong> - iterable of device point names from registry configuration file</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<dl>
+<dt><strong>set_multiple_points</strong> - Set values on multiple set points at once.  If global override is condition is set, raise</dt><dd><p>OverrideError exception.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>path</strong> - device topic string (typical format is devices/campus/building/device)</p></li>
+<li><p><strong>point_names_value</strong> - list of tuples consisting of (point_name, value) pairs for setting a series of
+points</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+<p><strong>heart_beat</strong> - Send a heartbeat/keep-alive signal to all devices configured for Platform Driver</p>
+<dl>
+<dt><strong>revert_point</strong> - Revert the set point of a device to its default state/value.  If global override is condition is</dt><dd><p>set, raise OverrideError exception.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>path</strong> - device topic string (typical format is devices/campus/building/device)</p></li>
+<li><p><strong>point_name</strong> - name of device point from registry configuration file</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt><strong>revert_device</strong> - Revert all the set point values of the device to default state/values.  If global override is</dt><dd><p>condition is set, raise OverrideError exception.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>path</strong> - device topic string (typical format is devices/campus/building/device)</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt><strong>set_override_on</strong> - Turn on override condition on all the devices matching the specified pattern (</dt><dd><p><a class="reference internal" href="#platform-driver-override"><span class="std std-ref">override docs</span></a>)</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt><strong>pattern</strong> - Override pattern to be applied. For example,</dt><dd><ul>
+<li><p>If pattern is <cite>campus/building1/*</cite> - Override condition is applied for all the devices under
+<cite>campus/building1/</cite>.</p></li>
+<li><p>If pattern is <cite>campus/building1/ahu1</cite> - Override condition is applied for only <cite>campus/building1/ahu1</cite>
+The pattern matching is based on bash style filename matching semantics.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><strong>duration</strong> - Duration in seconds for the override condition to be set on the device (default 0.0,
+duration &lt;= 0.0 imply indefinite duration)</p></li>
+<li><p><strong>failsafe_revert</strong> - Flag to indicate if all the devices falling under the override condition must to be
+set
+to its default state/value immediately.</p></li>
+<li><p><strong>staggered_revert</strong> -</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+<p><strong>set_override_off</strong> - Turn off override condition on all the devices matching the pattern.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Parameters</dt><dd><ul class="simple">
+<li><p><strong>pattern</strong> - device topic pattern for devices on which the override condition should be removed.</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>get_override_devices</strong> - Get a list of all the devices with override condition.</p>
+<p><strong>clear_overrides</strong> - Turn off override condition for all points on all devices.</p>
+<p><strong>get_override_patterns</strong> - Get a list of all override condition patterns currently set.</p>
+</section>
+</section>
+<section id="driver-override-condition">
+<span id="platform-driver-override"></span><h2>Driver Override Condition<a class="headerlink" href="#driver-override-condition" title="Permalink to this headline"></a></h2>
+<p>By default, every user is allowed write access to the devices by the platform driver.  The override feature will allow the
+user (for example, building administrator) to override this default behavior and enable the user to lock the write
+access on the devices for a specified duration of time or indefinitely.</p>
+<section id="set-override-on">
+<h3>Set Override On<a class="headerlink" href="#set-override-on" title="Permalink to this headline"></a></h3>
+<p>The Platform Driver’s <code class="docutils literal notranslate"><span class="pre">set_override_on</span></code> RPC method can be used to set the override condition for all drivers with topic
+matching the provided pattern.  This can be specific devices, groups of devices, or even all configured devices.  The
+pattern matching is based on bash style filename matching semantics.</p>
+<p>Parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>pattern:  Override pattern to be applied. For example,</dt><dd><ul>
+<li><p>If the pattern is <code class="docutils literal notranslate"><span class="pre">campus/building1/*</span></code> the override condition is applied for all the devices under
+<cite>campus/building1/</cite>.</p></li>
+<li><p>If the pattern is <code class="docutils literal notranslate"><span class="pre">campus/building1/ahu1</span></code> the override condition is applied for only the
+<cite>campus/building1/ahu1</cite> device. The pattern matching is based on bash style filename matching semantics.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>duration:  Time duration for the override in seconds. If duration &lt;= 0.0, it implies an indefinite duration.</p></li>
+<li><p>failsafe_revert:  Flag to indicate if all the devices falling under the override condition has to be set to its
+default state/value immediately.</p></li>
+<li><p>staggered_revert: If this flag is set, reverting of devices will be staggered.</p></li>
+</ul>
+</div></blockquote>
+<p>Example <code class="docutils literal notranslate"><span class="pre">set_override_on</span></code> RPC call:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">vip</span><span class="o">.</span><span class="n">rpc</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">PLATFORM_DRIVER</span><span class="p">,</span> <span class="s2">&quot;set_override_on&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">override</span> <span class="n">pattern</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">override</span> <span class="n">duration</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="set-override-off">
+<h3>Set Override Off<a class="headerlink" href="#set-override-off" title="Permalink to this headline"></a></h3>
+<p>The override condition can also be toggled off based on a provided pattern using the Platform Driver’s
+<code class="docutils literal notranslate"><span class="pre">set_override_off</span></code> RPC call.</p>
+<p>Parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>pattern:  Override pattern to be applied. For example,</dt><dd><ul>
+<li><p>If the pattern is <code class="docutils literal notranslate"><span class="pre">campus/building1/*</span></code> the override condition is removed for all the devices under
+<cite>campus/building1/</cite>.</p></li>
+<li><p>If the pattern is <code class="docutils literal notranslate"><span class="pre">campus/building1/ahu1</span></code> the override condition is removed for only for the
+<cite>campus/building1/ahu1</cite> device. The pattern matching is based on bash style filename matching semantics.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>Example <code class="docutils literal notranslate"><span class="pre">set_override_off</span></code> RPC call:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">vip</span><span class="o">.</span><span class="n">rpc</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">PLATFORM_DRIVER</span><span class="p">,</span> <span class="s2">&quot;set_override_off&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">override</span> <span class="n">pattern</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="get-override-devices">
+<h3>Get Override Devices<a class="headerlink" href="#get-override-devices" title="Permalink to this headline"></a></h3>
+<p>A list of all overridden devices can be obtained with the Platform Driver’s <code class="docutils literal notranslate"><span class="pre">get_override_devices</span></code> RPC call.</p>
+<p>This method call has no additional parameters.</p>
+<p>Example <code class="docutils literal notranslate"><span class="pre">get_override_devices</span></code> RPC call:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">vip</span><span class="o">.</span><span class="n">rpc</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">PLATFORM_DRIVER</span><span class="p">,</span> <span class="s2">&quot;get_override_devices&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="get-override-patterns">
+<h3>Get Override Patterns<a class="headerlink" href="#get-override-patterns" title="Permalink to this headline"></a></h3>
+<p>A list of all patterns which have been requested for override can be obtained with the Platform Driver’s
+<code class="docutils literal notranslate"><span class="pre">get_override_patterns</span></code> RPC call.</p>
+<p>This method call has no additional parameters</p>
+<p>Example “get_override_patterns” RPC call:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">vip</span><span class="o">.</span><span class="n">rpc</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">PLATFORM_DRIVER</span><span class="p">,</span> <span class="s2">&quot;get_override_patterns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="clear-overrides">
+<h3>Clear Overrides<a class="headerlink" href="#clear-overrides" title="Permalink to this headline"></a></h3>
+<p>All overrides set by RPC calls described above can be toggled off at using a single <code class="docutils literal notranslate"><span class="pre">clear_overrides</span></code> RPC call.</p>
+<p>This method call has no additional parameters</p>
+<p>Example “clear_overrides” RPC call:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">vip</span><span class="o">.</span><span class="n">rpc</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">PLATFORM_DRIVER</span><span class="p">,</span> <span class="s2">&quot;clear_overrides&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For information on the global override feature specification, view the
+<a class="reference internal" href="global-override-specification.html#global-override-specification"><span class="std std-ref">Global Override Specification</span></a> doc.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="global-override-specification.html">Global Override Specification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="global-override-specification.html#functional-capabilities">Functional Capabilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="global-override-specification.html#driver-rpc-methods">Driver RPC Methods</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Pacific Northwest National Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

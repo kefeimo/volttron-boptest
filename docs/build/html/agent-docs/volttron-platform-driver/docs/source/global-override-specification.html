@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Override Specification &mdash; VOLTTRON DNP3 Outstation Agent 0.1 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            VOLTTRON DNP3 Outstation Agent
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Global Override Specification</a><ul>
+<li><a class="reference internal" href="#functional-capabilities">Functional Capabilities</a><ul>
+<li><a class="reference internal" href="#driver-rpc-methods">Driver RPC Methods</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">VOLTTRON DNP3 Outstation Agent</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Global Override Specification</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/agent-docs/volttron-platform-driver/docs/source/global-override-specification.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="global-override-specification">
+<span id="id1"></span><h1>Global Override Specification<a class="headerlink" href="#global-override-specification" title="Permalink to this headline"></a></h1>
+<p>This document describes the specification for the global override feature.  By default, every user is allowed write
+access to the devices by the platform driver.  The override feature will allow the user (for example, a building
+administrator) to override this default behavior and enable the user to lock the write access on the devices for a
+specified duration of time or indefinitely.</p>
+<section id="functional-capabilities">
+<h2>Functional Capabilities<a class="headerlink" href="#functional-capabilities" title="Permalink to this headline"></a></h2>
+<ol class="arabic">
+<li><p>User shall be able to specify the following when turning on the override behavior on the devices.</p>
+<blockquote>
+<div><ul>
+<li><p>Override pattern examples:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If pattern is <code class="docutils literal notranslate"><span class="pre">campus/building1/*</span></code> - Override condition is turned on for all the devices under
+<cite>campus/building1/</cite>.</p></li>
+<li><p>If pattern is <code class="docutils literal notranslate"><span class="pre">campus/building1/ahu1</span></code> - Override condition is turned on for only <cite>campus/building1/ahu1</cite></p></li>
+<li><p>The pattern matching shall use bash style filename matching semantics.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Time duration over which override behavior is applicable - If the time duration is negative, then the override
+condition is applied indefinitely.</p></li>
+<li><p>Optional <cite>revert-to-fail-safe-state</cite> flag - If the flag is set, the platform driver shall set all the set points
+falling under the override condition to its default state/value immediately.  This is to ensure that the devices
+are in fail-safe state when the override/lock feature is removed.  If the flag is not set, the device state/value
+is untouched.</p></li>
+<li><p>Optional staggered revert flag - If this flag is set, reverting of devices will be staggered.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>User shall be able to disable/turn off the override behavior on devices by specifying:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Pattern on which the override/lock feature has be disabled. (example: <code class="docutils literal notranslate"><span class="pre">campus/building/\*</span></code>)</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>User shall be able to get a list of all the devices with the override condition set.</p></li>
+<li><p>User shall be able to get a list of all the override patterns that are currently active.</p></li>
+<li><p>User shall be able to clear all the overrides.</p></li>
+<li><p>Any changes to override patterns list shall be stored in the config store.  On startup, list of override patterns and
+corresponding end times are retrieved from the config store.  If the end time is indefinite or greater than current
+time for any pattern, then override is set on the matching devices for remaining duration of time.</p></li>
+<li><p>Whenever a device is newly configured, a check is made to see if it is part of the overridden patterns.  If yes, it
+is added to list of overridden devices.</p></li>
+<li><p>When a device is being removed, a check is made to see if it is part of the overridden devices.  If yes, it is
+removed from the list of overridden devices.</p></li>
+</ol>
+<section id="driver-rpc-methods">
+<h3>Driver RPC Methods<a class="headerlink" href="#driver-rpc-methods" title="Permalink to this headline"></a></h3>
+<ul class="simple">
+<li><p><em>set_override_on(pattern, duration=0.0, failsafe_revert=True, staggered_revert=True)</em> - Turn on override condition on all the devices matching the pattern. Time duration for the override condition has to be in seconds. For indefinite duration, the time duration has to be &lt;= 0.0.</p></li>
+<li><p><em>set_override_off(pattern)</em> - Turn off override condition on all the devices matching the pattern.  The specified
+pattern will be removed from the override patterns list. All the devices falling under the given pattern will be
+removed from the list of overridden devices.</p></li>
+<li><p><em>get_override_devices()</em> - Get a list of all the devices with override condition.</p></li>
+<li><p><em>get_override_patterns()</em> - Get a list of override patterns that are currently active.</p></li>
+<li><p><em>clear_overrides()</em> - Clear all the overrides.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Pacific Northwest National Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
