@@ -109,7 +109,7 @@ work out-of-the-box. Please feel free to refer to related documentations for det
     ```shell
     # Create config file place holders
     mkdir config
-    touch config/dnp3-outstation-config.json
+    touch config/boptest-agent-config.json
     ```
 
    Edit the `dnp3-outstation-config.json` as follows:

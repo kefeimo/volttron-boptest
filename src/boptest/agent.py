@@ -1,3 +1,4 @@
+from __future__ import  annotations
 # -*- coding: utf-8 -*- {{{
 # ===----------------------------------------------------------------------===
 #
@@ -37,13 +38,37 @@ from dnp3_python.dnp3station.outstation_new import MyOutStationNew
 from pydnp3 import opendnp3
 from volttron.client.vip.agent import Agent, Core, RPC
 import subprocess
+from volttron import utils
+
 
 setup_logging()
 _log = logging.getLogger(__name__)
 __version__ = "1.0"
 
 
-class Dnp3OutstationAgent(Agent):
+def boptest_example(config_path, **kwargs) -> BopTestAgent:
+    """Parses the Agent configuration and returns an instance of
+    the agent created using that configuration.
+
+    :param config_path: Path to a configuration file.
+
+    :type config_path: str
+    :returns: BopTestAgent
+    :rtype: BopTestAgent
+    """
+    _log.debug("CONFIG PATH: {}".format(config_path))
+    try:
+        config = utils.load_config(config_path)
+    except Exception:
+        config = {}
+    #_log.debug("CONFIG: {}".format(config))
+    if not config:
+        _log.info("Using Agent defaults for starting configuration.")
+
+    return BopTestAgent(config, **kwargs)
+
+
+class BopTestAgent(Agent):
     """This is class is a subclass of the Volttron Agent;
         This agent is an implementation of a DNP3 outstation;
         The agent overrides @Core.receiver methods to modify agent life cycle behavior;
@@ -58,27 +83,28 @@ class Dnp3OutstationAgent(Agent):
         # agent configuration using volttron config framework
         # self._dnp3_outstation_config = default_config
         config_from_path = self._parse_config(config_path)
+        self.config = config_from_path
 
-        # TODO: improve this logic by refactoring out the MyOutstationNew init,
-        #  and add config from "config store"
-        try:
-            _log.info("Using config_from_path {config_from_path}")
-            self._dnp3_outstation_config = config_from_path
-            self.outstation_application = MyOutStationNew(**self._dnp3_outstation_config)
-        except Exception as e:
-            _log.error(e)
-            _log.info(f"Failed to use config_from_path {config_from_path}"
-                      f"Using default_config {default_config}")
-            self._dnp3_outstation_config = default_config
-            self.outstation_application = MyOutStationNew(**self._dnp3_outstation_config)
-
-        # SubSystem/ConfigStore
-        self.vip.config.set_default("config", default_config)
-        self.vip.config.subscribe(
-            self._config_callback_dummy,  # TODO: cleanup: used to be _configure_ven_client
-            actions=["NEW", "UPDATE"],
-            pattern="config",
-        )  # TODO: understand what vip.config.subscribe does
+        # # TODO: improve this logic by refactoring out the MyOutstationNew init,
+        # #  and add config from "config store"
+        # try:
+        #     _log.info("Using config_from_path {config_from_path}")
+        #     self._dnp3_outstation_config = config_from_path
+        #     self.outstation_application = MyOutStationNew(**self._dnp3_outstation_config)
+        # except Exception as e:
+        #     _log.error(e)
+        #     _log.info(f"Failed to use config_from_path {config_from_path}"
+        #               f"Using default_config {default_config}")
+        #     self._dnp3_outstation_config = default_config
+        #     self.outstation_application = MyOutStationNew(**self._dnp3_outstation_config)
+        #
+        # # SubSystem/ConfigStore
+        # self.vip.config.set_default("config", default_config)
+        # self.vip.config.subscribe(
+        #     self._config_callback_dummy,  # TODO: cleanup: used to be _configure_ven_client
+        #     actions=["NEW", "UPDATE"],
+        #     pattern="config",
+        # )  # TODO: understand what vip.config.subscribe does
 
     @property
     def dnp3_outstation_config(self):
@@ -116,7 +142,14 @@ class Dnp3OutstationAgent(Agent):
         Usually not needed if using the configuration store.
         """
 
-        self.boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest/docker-compose.yml")
+        testcase = self.config.get("testcase")
+        docker_compose_file_path = self.config.get("docker_compose_file_path")
+        if not testcase:
+            raise ValueError("`testcase in config` file needs to be configured.")
+        if not docker_compose_file_path:
+            raise ValueError("`docker_compose_file_path` in config file needs to be configured.")
+        self.boptest_up(testcase=testcase, docker_compose_file_path=docker_compose_file_path)
+
 
         # Example publish to pubsub
         # self.vip.pubsub.publish('pubsub', "some/random/topic", message="HI!")
@@ -261,7 +294,7 @@ class Dnp3OutstationAgent(Agent):
 
 def main():
     """Main method called to start the agent."""
-    vip_main(Dnp3OutstationAgent)
+    vip_main(BopTestAgent)
 
 
 if __name__ == "__main__":
