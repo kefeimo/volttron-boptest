@@ -130,7 +130,8 @@ class BopTestAgent(Agent):
         else:
             verbose = ""
         cmd = f"TESTCASE={testcase} docker-compose {verbose} -f {docker_compose_file_path} up -d"
-        return subprocess.run([cmd], shell=True).stdout.decode("utf-8")
+        res = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
+        return res.stdout.decode("utf-8")
 
     @Core.receiver("onstart")
     def onstart(self, sender, **kwargs):
@@ -148,7 +149,9 @@ class BopTestAgent(Agent):
             raise ValueError("`testcase in config` file needs to be configured.")
         if not docker_compose_file_path:
             raise ValueError("`docker_compose_file_path` in config file needs to be configured.")
-        self.boptest_up(testcase=testcase, docker_compose_file_path=docker_compose_file_path)
+        # self.boptest_up(testcase=testcase, docker_compose_file_path=docker_compose_file_path)
+        logging.debug(f"testcase: {testcase}")
+        logging.debug(f"docker_compose_file_path: {docker_compose_file_path}")
 
 
         # Example publish to pubsub
