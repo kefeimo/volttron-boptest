@@ -106,18 +106,18 @@ class BopTestAgent(Agent):
         #     pattern="config",
         # )  # TODO: understand what vip.config.subscribe does
 
-    @property
-    def dnp3_outstation_config(self):
-        return self._dnp3_outstation_config
-
-    @dnp3_outstation_config.setter
-    def dnp3_outstation_config(self, config: dict):
-        # TODO: add validation
-        self._dnp3_outstation_config = config
-
-    def _config_callback_dummy(self, config_name: str, action: str,
-                               contents: Dict) -> None:
-        pass
+    # @property
+    # def dnp3_outstation_config(self):
+    #     return self._dnp3_outstation_config
+    #
+    # @dnp3_outstation_config.setter
+    # def dnp3_outstation_config(self, config: dict):
+    #     # TODO: add validation
+    #     self._dnp3_outstation_config = config
+    #
+    # def _config_callback_dummy(self, config_name: str, action: str,
+    #                            contents: Dict) -> None:
+    #     pass
 
     @staticmethod
     def boptest_up(testcase: str, docker_compose_file_path: str, is_verbose: bool = True) -> str:
@@ -142,16 +142,24 @@ class BopTestAgent(Agent):
         Called after any configurations methods that are called at startup.
         Usually not needed if using the configuration store.
         """
+        pass
 
-        testcase = self.config.get("testcase")
-        docker_compose_file_path = self.config.get("docker_compose_file_path")
-        if not testcase:
-            raise ValueError("`testcase in config` file needs to be configured.")
-        if not docker_compose_file_path:
-            raise ValueError("`docker_compose_file_path` in config file needs to be configured.")
-        # self.boptest_up(testcase=testcase, docker_compose_file_path=docker_compose_file_path)
-        logging.debug(f"testcase: {testcase}")
-        logging.debug(f"docker_compose_file_path: {docker_compose_file_path}")
+        # TODO: Exit if EnergyPlus isn't installed in the current environment.
+        # if not self.EnergyPlus_sim.is_sim_installed():
+        #     _log.error("EnergyPlus is unavailable please install it before running this agent.")
+        #     self.core.stop()
+        #     return
+
+
+        # testcase = self.config.get("testcase")
+        # docker_compose_file_path = self.config.get("docker_compose_file_path")
+        # if not testcase:
+        #     raise ValueError("`testcase in config` file needs to be configured.")
+        # if not docker_compose_file_path:
+        #     raise ValueError("`docker_compose_file_path` in config file needs to be configured.")
+        # # self.boptest_up(testcase=testcase, docker_compose_file_path=docker_compose_file_path)
+        # logging.debug(f"testcase: {testcase}")
+        # logging.debug(f"docker_compose_file_path: {docker_compose_file_path}")
 
 
         # Example publish to pubsub
@@ -162,7 +170,6 @@ class BopTestAgent(Agent):
         # pass
         # self._create_subscriptions(self.setting2)
 
-    # ***************** Helper methods ********************
     def _parse_config(self, config_path: str) -> Dict:
         """Parses the agent's configuration file.
 
