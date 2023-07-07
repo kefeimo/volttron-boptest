@@ -40,7 +40,7 @@ def main():
     # peer_method = "get_simulation_results"
     # rs = a.vip.rpc.call(peer, peer_method).get(timeout=5)
     # # print(datetime.datetime.now(), "rs: ", rs)
-    #
+    # #
     # import pandas as pd
     # rs_payload = rs["payload"]
     # # df_res = pd.DataFrame()
