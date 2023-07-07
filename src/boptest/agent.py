@@ -39,6 +39,9 @@ from pydnp3 import opendnp3
 from volttron.client.vip.agent import Agent, Core, RPC
 import subprocess
 from volttron import utils
+from .boptest_integration import BopTestSimIntegrationLocal
+import time
+import numpy as np
 
 
 setup_logging()
@@ -78,46 +81,9 @@ class BopTestAgent(Agent):
     def __init__(self, config_path: str, **kwargs) -> None:
         super().__init__(enable_web=True, **kwargs)
 
-        # default_config, mainly for developing and testing purposes.
-        default_config: dict = {'outstation_ip': '0.0.0.0', 'port': 20000, 'master_id': 2, 'outstation_id': 1}
-        # agent configuration using volttron config framework
-        # self._dnp3_outstation_config = default_config
-        config_from_path = self._parse_config(config_path)
-        self.config = config_from_path
+        self.bp_sim = BopTestSimIntegrationLocal()
 
-        # # TODO: improve this logic by refactoring out the MyOutstationNew init,
-        # #  and add config from "config store"
-        # try:
-        #     _log.info("Using config_from_path {config_from_path}")
-        #     self._dnp3_outstation_config = config_from_path
-        #     self.outstation_application = MyOutStationNew(**self._dnp3_outstation_config)
-        # except Exception as e:
-        #     _log.error(e)
-        #     _log.info(f"Failed to use config_from_path {config_from_path}"
-        #               f"Using default_config {default_config}")
-        #     self._dnp3_outstation_config = default_config
-        #     self.outstation_application = MyOutStationNew(**self._dnp3_outstation_config)
-        #
-        # # SubSystem/ConfigStore
-        # self.vip.config.set_default("config", default_config)
-        # self.vip.config.subscribe(
-        #     self._config_callback_dummy,  # TODO: cleanup: used to be _configure_ven_client
-        #     actions=["NEW", "UPDATE"],
-        #     pattern="config",
-        # )  # TODO: understand what vip.config.subscribe does
 
-    # @property
-    # def dnp3_outstation_config(self):
-    #     return self._dnp3_outstation_config
-    #
-    # @dnp3_outstation_config.setter
-    # def dnp3_outstation_config(self, config: dict):
-    #     # TODO: add validation
-    #     self._dnp3_outstation_config = config
-    #
-    # def _config_callback_dummy(self, config_name: str, action: str,
-    #                            contents: Dict) -> None:
-    #     pass
 
     @staticmethod
     def boptest_up(testcase: str, docker_compose_file_path: str, is_verbose: bool = True) -> str:
@@ -143,23 +109,150 @@ class BopTestAgent(Agent):
         Usually not needed if using the configuration store.
         """
         pass
+        logging.info("=========== Starting Boptest agent onstart")  # TODO: get rid of this
 
-        # TODO: Exit if EnergyPlus isn't installed in the current environment.
-        # if not self.EnergyPlus_sim.is_sim_installed():
-        #     _log.error("EnergyPlus is unavailable please install it before running this agent.")
-        #     self.core.stop()
-        #     return
+        # GET TEST INFORMATION
+        # -------------------------------------------------------------------------
+        logging.info('\nTEST CASE INFORMATION\n---------------------')
+        # Retrieve testcase name from REST API
+        name = self.bp_sim.get_name()
+        logging.info('Name:\t\t\t\t{0}'.format(name))
+        # Retrieve a list of inputs (controllable points) for the model from REST API
+        inputs = self.bp_sim.get_inputs(keys_only=False)
+        logging.info('Control Inputs:\t\t\t{0}'.format(inputs))
+        # Retrieve a list of measurements (outputs) for the model from REST API
+        measurements = self.bp_sim.get_measurements(keys_only=False)
+        logging.info('Measurements:\t\t\t{0}'.format(measurements))
+        # Get the default simulation timestep for the model for simulation run
+        step_def = self.bp_sim.get_step()
+        logging.info('Default Control Step:\t{0}'.format(step_def))
+
+        # # IF ANY CUSTOM KPI CALCULATION, DEFINE STRUCTURES
+        # # ------------------------------------------------
+        # custom_kpis = []  # Initialize customized kpi calculation list
+        # custom_kpi_result = {}  # Initialize tracking of customized kpi calculation results
+        # if customized_kpi_config is not None:
+        #     with open(customized_kpi_config) as f:
+        #         config = json.load(f, object_pairs_hook=collections.OrderedDict)
+        #     for key in config.keys():
+        #         custom_kpis.append(CustomKPI(config[key]))
+        #         custom_kpi_result[CustomKPI(config[key]).name] = []
+        # custom_kpi_result['time'] = []
+
+        # RUN TEST CASE
+        # -------------------------------------------------------------------------
+        # Record real starting time
+        start = time.time()
+        # Initialize test case
+        print('Initializing test case simulation.')
+        scenario = None
+        if scenario is not None:  # TODO: add scenario setup methods
+            # # Initialize test with a scenario time period
+            # res = check_response(requests.put('{0}/scenario'.format(url), json=scenario))['time_period']
+            # print(res)
+            # # Record test simulation start time
+            # start_time = int(res['time'])
+            # # Set final time and total time steps to be very large since scenario defines length
+            # final_time = np.inf
+            # total_time_steps = int((365 * 24 * 3600) / step)
+            pass
+        else:
+            # Initialize test with a specified start time and warmup period
+            # TODO: refactor the following, e.g., start_time, warmup_period, etc. to config process
+            start_time = 0
+            warmup_period = 0
+            length = 24 * 3600
+            step = 300
+            res = self.bp_sim.put_initialize(start_time=start_time, warmup_period=warmup_period)
+            logging.info("RESULT: {}".format(res))
+            # Set final time and total time steps according to specified length (seconds)
+            final_time = start_time + length
+            total_time_steps = int(length / step)  # calculate number of timesteps
+        if res:
+            logging.info('Successfully initialized the simulation')
+        logging.info('\nRunning test case...')
+        # Set simulation time step
+        res = self.bp_sim.put_step(step=step)
+        # Initialize input to simulation from controller
+        # u = controller.initialize()
+        # TODO: refactor the hard-coded u t config
+        u = {}
+        # Initialize forecast storage structure
+        forecasts = None
+        res = self.bp_sim.get_scenario()
+        logging.info("RESULT: {}".format(res))
+        # Simulation Loop
+        for t in range(total_time_steps):
+            # Advance simulation with control input value(s)
+            y = self.bp_sim.post_advance(data=u)
+            # If simulation is complete break simulation loop
+            if not y:
+                break
+            # If custom KPIs are configured, compute the KPIs
+            # TODO: develop customer-kpis feature
+            # for kpi in custom_kpis:
+            #     kpi.processing_data(y)  # Process data as needed for custom KPI
+            #     custom_kpi_value = kpi.calculation()  # Calculate custom KPI value
+            #     custom_kpi_result[kpi.name].append(round(custom_kpi_value, 2))  # Track custom KPI value
+            #     print('KPI:\t{0}:\t{1}'.format(kpi.name, round(custom_kpi_value, 2)))  # Print custom KPI value
+            # custom_kpi_result['time'].append(y['time'])  # Track custom KPI calculation time
+            # If controller needs a forecast, get the forecast data and provide the forecast to the controller
+            # TODO: develop forecast feature
+            # if controller.use_forecast:
+            #     # Retrieve forecast from restful API
+            #     forecast_parameters = controller.get_forecast_parameters()
+            #     forecast_data = check_response(requests.put('{0}/forecast'.format(url), json=forecast_parameters))
+            #     # Use forecast data to update controller-specific forecast data
+            #     forecasts = controller.update_forecasts(forecast_data, forecasts)
+            # else:
+            #     forecasts = None
+            # # Compute control signal input to simulation for the next timestep
+            # u = controller.compute_control(y, forecasts)
+        logging.info('\nTest case complete.')
+        logging.info('Elapsed time of test was {0} seconds.'.format(time.time() - start))
+
+        # VIEW RESULTS
+        # -------------------------------------------------------------------------
+        # Report KPIs
+        kpi = self.bp_sim.get_kpi()
+        logging.info('\nKPI RESULTS \n-----------')
+        for key in kpi.keys():
+            if key == 'ener_tot':
+                unit = 'kWh/m$^2$'
+            elif key == 'pele_tot':
+                unit = 'kW/m$^2$'
+            elif key == 'pgas_tot':
+                unit = 'kW/m$^2$'
+            elif key == 'pdih_tot':
+                unit = 'kW/m$^2$'
+            elif key == 'tdis_tot':
+                unit = 'Kh/zone'
+            elif key == 'idis_tot':
+                unit = 'ppmh/zone'
+            elif key == 'cost_tot':
+                unit = 'Euro or \$/m$^2$'
+            elif key == 'emis_tot':
+                unit = 'KgCO2/m$^2$'
+            elif key == 'time_rat':
+                unit = 's/s'
+            else:
+                unit = None
+            logging.info('{0}: {1} {2}'.format(key, kpi[key], unit))
+
+            # POST PROCESS RESULTS
+            # -------------------------------------------------------------------------
+            # Get result data
+            points = list(measurements.keys()) + list(inputs.keys())
+            res = self.bp_sim.put_results(point_names=points, start_time=start_time, final_time=final_time)
+
+            # return kpi, res, custom_kpi_result, forecasts  # TODO: originally publish these
+            # TODO: refactor topic value to config
+            default_prefix = "PNNL/BUILDING/UNIT/"
+            self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "kpi", message=str(kpi))
+            # self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "result", message=str(res))
+            # TODO: publish custom_kpi_result forecasts
 
 
-        # testcase = self.config.get("testcase")
-        # docker_compose_file_path = self.config.get("docker_compose_file_path")
-        # if not testcase:
-        #     raise ValueError("`testcase in config` file needs to be configured.")
-        # if not docker_compose_file_path:
-        #     raise ValueError("`docker_compose_file_path` in config file needs to be configured.")
-        # # self.boptest_up(testcase=testcase, docker_compose_file_path=docker_compose_file_path)
-        # logging.debug(f"testcase: {testcase}")
-        # logging.debug(f"docker_compose_file_path: {docker_compose_file_path}")
 
 
         # Example publish to pubsub
@@ -197,109 +290,6 @@ class BopTestAgent(Agent):
         """
         return "This is a dummy rpc call"
 
-    @RPC.export
-    def reset_outstation(self):
-        """update`self._dnp3_outstation_config`, then init a new outstation.
-        For post-configuration and immediately take effect.
-        Note: will start a new outstation instance and the old database data will lose"""
-        # self.dnp3_outstation_config(**kwargs)
-        # TODO: this method might be refactored as internal helper method for `update_outstation`
-        try:
-            self.outstation_application.shutdown()
-            outstation_app_new = MyOutStationNew(**self.dnp3_outstation_config)
-            self.outstation_application = outstation_app_new
-            self.outstation_application.start()
-            _log.info(f"Outstation has restarted")
-        except Exception as e:
-            _log.error(e)
-
-    @RPC.export
-    def display_outstation_db(self) -> dict:
-        """expose db"""
-        return self.outstation_application.db_handler.db
-
-    @RPC.export
-    def get_outstation_config(self) -> dict:
-        """expose get_config"""
-        return self.outstation_application.get_config()
-
-    @RPC.export
-    def is_outstation_connected(self) -> bool:
-        """expose is_connected, note: status, property"""
-        return self.outstation_application.is_connected
-
-    @RPC.export
-    def apply_update_analog_input(self, val: float, index: int) -> dict:
-        """public interface to update analog-input point value
-        val: float
-        index: int, point index
-        """
-        if not isinstance(val, float):
-            raise f"val of type(val) should be float"
-        self.outstation_application.apply_update(opendnp3.Analog(value=val), index)
-        _log.debug(f"Updated outstation analog-input index: {index}, val: {val}")
-
-        return self.outstation_application.db_handler.db
-
-    @RPC.export
-    def apply_update_analog_output(self, val: float, index: int) -> dict:
-        """public interface to update analog-output point value
-        val: float
-        index: int, point index
-        """
-
-        if not isinstance(val, float):
-            raise f"val of type(val) should be float"
-        self.outstation_application.apply_update(opendnp3.AnalogOutputStatus(value=val), index)
-        _log.debug(f"Updated outstation analog-output index: {index}, val: {val}")
-
-        return self.outstation_application.db_handler.db
-
-    @RPC.export
-    def apply_update_binary_input(self, val: bool, index: int):
-        """public interface to update binary-input point value
-        val: bool
-        index: int, point index
-        """
-        if not isinstance(val, bool):
-            raise f"val of type(val) should be bool"
-        self.outstation_application.apply_update(opendnp3.Binary(value=val), index)
-        _log.debug(f"Updated outstation binary-input index: {index}, val: {val}")
-
-        return self.outstation_application.db_handler.db
-
-    @RPC.export
-    def apply_update_binary_output(self, val: bool, index: int):
-        """public interface to update binary-output point value
-        val: bool
-        index: int, point index
-        """
-        if not isinstance(val, bool):
-            raise f"val of type(val) should be bool"
-        self.outstation_application.apply_update(opendnp3.BinaryOutputStatus(value=val), index)
-        _log.debug(f"Updated outstation binary-output index: {index}, val: {val}")
-
-        return self.outstation_application.db_handler.db
-
-    @RPC.export
-    def update_outstation(self,
-                          outstation_ip: str = None,
-                          port: int = None,
-                          master_id: int = None,
-                          outstation_id: int = None,
-                          **kwargs):
-        """
-        Update dnp3 outstation config and restart the application to take effect. By default,
-        {'outstation_ip': '0.0.0.0', 'port': 20000, 'master_id': 2, 'outstation_id': 1}
-        """
-        config = self._dnp3_outstation_config.copy()
-        for kwarg in [{"outstation_ip": outstation_ip},
-                      {"port": port},
-                      {"master_id": master_id}, {"outstation_id": outstation_id}]:
-            if list(kwarg.values())[0] is not None:
-                config.update(kwarg)
-        self._dnp3_outstation_config = config
-        self.reset_outstation()
 
 
 def main():
