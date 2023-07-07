@@ -49,26 +49,26 @@ _log = logging.getLogger(__name__)
 __version__ = "1.0"
 
 
-def boptest_example(config_path, **kwargs) -> BopTestAgent:
-    """Parses the Agent configuration and returns an instance of
-    the agent created using that configuration.
-
-    :param config_path: Path to a configuration file.
-
-    :type config_path: str
-    :returns: BopTestAgent
-    :rtype: BopTestAgent
-    """
-    _log.debug("CONFIG PATH: {}".format(config_path))
-    try:
-        config = utils.load_config(config_path)
-    except Exception:
-        config = {}
-    #_log.debug("CONFIG: {}".format(config))
-    if not config:
-        _log.info("Using Agent defaults for starting configuration.")
-
-    return BopTestAgent(config, **kwargs)
+# def boptest_example(config_path, **kwargs) -> BopTestAgent:
+#     """Parses the Agent configuration and returns an instance of
+#     the agent created using that configuration.
+#
+#     :param config_path: Path to a configuration file.
+#
+#     :type config_path: str
+#     :returns: BopTestAgent
+#     :rtype: BopTestAgent
+#     """
+#     _log.debug("CONFIG PATH: {}".format(config_path))
+#     try:
+#         config = utils.load_config(config_path)
+#     except Exception:
+#         config = {}
+#     #_log.debug("CONFIG: {}".format(config))
+#     if not config:
+#         _log.info("Using Agent defaults for starting configuration.")
+#
+#     return BopTestAgent(config, **kwargs)
 
 
 class BopTestAgent(Agent):
@@ -82,22 +82,34 @@ class BopTestAgent(Agent):
         super().__init__(enable_web=True, **kwargs)
 
         self.bp_sim = BopTestSimIntegrationLocal()
+        self.config: "json" = self._parse_config(config_path)
+        # TODO: design config template
+        # TODO: create config data class (with validation)
+        #  logging.debug(f"================ config: {self.config}")
+
+        # Init the result data
+        self._results = None
+        self._kpi = None
+        # self._custom_kpi_result = None
+        self._forecasts = None
+
+        self._is_onstart_completed = False
 
 
 
-    @staticmethod
-    def boptest_up(testcase: str, docker_compose_file_path: str, is_verbose: bool = True) -> str:
-        """
-        EXAMPLE
-        boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest/docker-compose.yml")
-        """
-        if is_verbose:
-            verbose = "--verbose"
-        else:
-            verbose = ""
-        cmd = f"TESTCASE={testcase} docker-compose {verbose} -f {docker_compose_file_path} up -d"
-        res = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
-        return res.stdout.decode("utf-8")
+    # @staticmethod
+    # def boptest_up(testcase: str, docker_compose_file_path: str, is_verbose: bool = True) -> str:
+    #     """
+    #     EXAMPLE
+    #     boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest/docker-compose.yml")
+    #     """
+    #     if is_verbose:
+    #         verbose = "--verbose"
+    #     else:
+    #         verbose = ""
+    #     cmd = f"TESTCASE={testcase} docker-compose {verbose} -f {docker_compose_file_path} up -d"
+    #     res = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
+    #     return res.stdout.decode("utf-8")
 
     @Core.receiver("onstart")
     def onstart(self, sender, **kwargs):
@@ -158,29 +170,36 @@ class BopTestAgent(Agent):
             pass
         else:
             # Initialize test with a specified start time and warmup period
-            # TODO: refactor the following, e.g., start_time, warmup_period, etc. to config process
-            start_time = 0
-            warmup_period = 0
-            length = 24 * 3600
-            step = 300
+
+            # DONE: refactor the following, e.g., start_time, warmup_period, etc. to config process
+            # start_time = 0  # used in GET/initialize
+            # warmup_period = 0  # used in GET/initialize
+            # length = 24 * 3600  # intermediate variable to calculate total_time_steps.
+            # step = 300  # step length
+            start_time = self.config.get("initialize").get("start_time")  # used in GET/initialize
+            warmup_period = self.config.get("initialize").get("warmup_period")  # used in GET/initialize
+            length = self.config.get("length")  # intermediate variable to calculate total_time_steps.
+            # TODO: investigate what happen if length is not a multiplication of steps (affected by PUT/results)
+            step = self.config.get("step")  # step length
             res = self.bp_sim.put_initialize(start_time=start_time, warmup_period=warmup_period)
             logging.info("RESULT: {}".format(res))
             # Set final time and total time steps according to specified length (seconds)
             final_time = start_time + length
-            total_time_steps = int(length / step)  # calculate number of timesteps
+            total_time_steps = int(length / step)  # calculate number of timesteps, i.e., number of advance
         if res:
             logging.info('Successfully initialized the simulation')
         logging.info('\nRunning test case...')
         # Set simulation time step
         res = self.bp_sim.put_step(step=step)
+
         # Initialize input to simulation from controller
         # u = controller.initialize()
-        # TODO: refactor the hard-coded u t config
-        u = {}
+        u = self.config.get("controller").get("u")
         # Initialize forecast storage structure
         forecasts = None
         res = self.bp_sim.get_scenario()
         logging.info("RESULT: {}".format(res))
+
         # Simulation Loop
         for t in range(total_time_steps):
             # Advance simulation with control input value(s)
@@ -199,6 +218,7 @@ class BopTestAgent(Agent):
             # If controller needs a forecast, get the forecast data and provide the forecast to the controller
             # TODO: develop forecast feature
             # if controller.use_forecast:
+            # if self.config.get("controller").get("use_forecast"):
             #     # Retrieve forecast from restful API
             #     forecast_parameters = controller.get_forecast_parameters()
             #     forecast_data = check_response(requests.put('{0}/forecast'.format(url), json=forecast_parameters))
@@ -252,6 +272,14 @@ class BopTestAgent(Agent):
             # self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "result", message=str(res))
             # TODO: publish custom_kpi_result forecasts
 
+            # Store the result data
+            self._results = res
+            self._kpi = kpi
+            # self._custom_kpi_result = custom_kpi_result
+            self._forecasts = forecasts
+
+            self._is_onstart_completed = True
+
 
 
 
@@ -290,6 +318,22 @@ class BopTestAgent(Agent):
         """
         return "This is a dummy rpc call"
 
+    # TODO: verify if onstart hook needs to finish first before evoke rpc call.
+    @RPC.export
+    def get_kpi_results(self):
+        if self._is_onstart_completed:
+            return self._kpi
+        else:
+            logging.info("Onstart process not finished")
+            return
+
+    @RPC.export
+    def get_simulation_results(self):
+        if self._is_onstart_completed:
+            return self._results
+        else:
+            logging.info("Onstart process not finished")
+            return
 
 
 def main():

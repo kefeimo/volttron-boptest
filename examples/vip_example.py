@@ -26,15 +26,27 @@ def main():
     # rs = a.vip.rpc.call(peer, peer_method, ).get(timeout=10)
     # print(datetime.datetime.now(), "rs: ", rs)
 
-    peer = "boptest"
+    peer = "volttron_boptest_agent"
     peer_method = "rpc_dummy"
     rs = a.vip.rpc.call(peer, peer_method).get(timeout=5)
     print(datetime.datetime.now(), "rs: ", rs)
 
-    peer = "boptest"
-    peer_method = "reset_outstation"
-    rs = a.vip.rpc.call(peer, peer_method).get(timeout=5)
-    print(datetime.datetime.now(), "rs: ", rs)
+    # peer = "volttron_boptest_agent"
+    # peer_method = "get_kpi_results"
+    # rs = a.vip.rpc.call(peer, peer_method).get(timeout=5)
+    # print(datetime.datetime.now(), "rs: ", rs)
+    #
+    # peer = "volttron_boptest_agent"
+    # peer_method = "get_simulation_results"
+    # rs = a.vip.rpc.call(peer, peer_method).get(timeout=5)
+    # # print(datetime.datetime.now(), "rs: ", rs)
+    #
+    # import pandas as pd
+    # rs_payload = rs["payload"]
+    # # df_res = pd.DataFrame()
+    # df_res = pd.DataFrame.from_dict(rs_payload)
+    # df_res = df_res.set_index('time')
+    # print(df_res)
 
 
 if __name__ == "__main__":
