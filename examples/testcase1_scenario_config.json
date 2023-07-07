@@ -1,12 +1,12 @@
 {
-  "initialize":  # for GET/initialize
+  "initialize": null,
+  "scenario":
   {
-    "start_time": 0,
-    "warmup_period": 0
+    "time_period": "test_day",
+    "electricity_price": "dynamic"
   },
-  "scenario": null,
   "step": 300,
-  "length": 86400,
+  "length": 1728000,
 
   "controller":
   {

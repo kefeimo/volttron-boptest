@@ -85,7 +85,7 @@ class BopTestAgent(Agent):
         self.config: "json" = self._parse_config(config_path)
         # TODO: design config template
         # TODO: create config data class (with validation)
-        #  logging.debug(f"================ config: {self.config}")
+        # logging.debug(f"================ config: {self.config}")
 
         # Init the result data
         self._results = None
@@ -121,7 +121,7 @@ class BopTestAgent(Agent):
         Usually not needed if using the configuration store.
         """
         pass
-        logging.info("=========== Starting Boptest agent onstart")  # TODO: get rid of this
+        # logging.info("=========== Starting Boptest agent onstart")
 
         # GET TEST INFORMATION
         # -------------------------------------------------------------------------
@@ -156,31 +156,27 @@ class BopTestAgent(Agent):
         # Record real starting time
         start = time.time()
         # Initialize test case
-        print('Initializing test case simulation.')
-        scenario = None
-        if scenario is not None:  # TODO: add scenario setup methods
-            # # Initialize test with a scenario time period
-            # res = check_response(requests.put('{0}/scenario'.format(url), json=scenario))['time_period']
-            # print(res)
-            # # Record test simulation start time
-            # start_time = int(res['time'])
-            # # Set final time and total time steps to be very large since scenario defines length
-            # final_time = np.inf
-            # total_time_steps = int((365 * 24 * 3600) / step)
-            pass
+        logging.info('Initializing test case simulation.')
+        # TODO: investigate what happen if length is not a multiplication of steps (affected by PUT/results)
+        # TODO: handle very large length, e.g., 365 * 24 * 3600
+        length = self.config.get("length")  # intermediate variable to calculate total_time_steps.
+
+        step = self.config.get("step")  # step length
+        scenario = self.config.get("scenario")  # e.g., {"time_period": "test_day","electricity_price": "dynamic"}
+        if scenario is not None:
+            # Initialize test with a scenario time period
+            res = self.bp_sim.put_scenario(**scenario)
+            logging.info('Scenario:\t\t\t{0}'.format(res))
+            # Record test simulation start time
+            start_time = int(res["time_period"]['time'])  # Note: the schema can be subjective to Boptest versions.
+            # Set final time and total time steps to be very large since scenario defines length
+            final_time = np.inf
+            total_time_steps = int(length / step)
         else:
             # Initialize test with a specified start time and warmup period
-
-            # DONE: refactor the following, e.g., start_time, warmup_period, etc. to config process
-            # start_time = 0  # used in GET/initialize
-            # warmup_period = 0  # used in GET/initialize
-            # length = 24 * 3600  # intermediate variable to calculate total_time_steps.
-            # step = 300  # step length
             start_time = self.config.get("initialize").get("start_time")  # used in GET/initialize
             warmup_period = self.config.get("initialize").get("warmup_period")  # used in GET/initialize
-            length = self.config.get("length")  # intermediate variable to calculate total_time_steps.
-            # TODO: investigate what happen if length is not a multiplication of steps (affected by PUT/results)
-            step = self.config.get("step")  # step length
+
             res = self.bp_sim.put_initialize(start_time=start_time, warmup_period=warmup_period)
             logging.info("RESULT: {}".format(res))
             # Set final time and total time steps according to specified length (seconds)
@@ -265,7 +261,7 @@ class BopTestAgent(Agent):
             points = list(measurements.keys()) + list(inputs.keys())
             res = self.bp_sim.put_results(point_names=points, start_time=start_time, final_time=final_time)
 
-            # return kpi, res, custom_kpi_result, forecasts  # TODO: originally publish these
+            # return kpi, res, custom_kpi_result, forecasts  # Note: originally publish these
             # TODO: refactor topic value to config
             default_prefix = "PNNL/BUILDING/UNIT/"
             self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "kpi", message=str(kpi))
@@ -279,6 +275,8 @@ class BopTestAgent(Agent):
             self._forecasts = forecasts
 
             self._is_onstart_completed = True
+
+        logging.info("======== onstart completed.======")
 
 
 
@@ -297,7 +295,6 @@ class BopTestAgent(Agent):
         :param config_path: The path to the configuration file
         :return: The configuration
         """
-        # TODO: added capability to configuration based on tabular config file (e.g., csv)
         try:
             config = load_config(config_path)
         except NameError as err:
