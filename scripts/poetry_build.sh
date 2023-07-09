@@ -21,8 +21,8 @@ do
   cd "${DIR}/../${p}" || exit
   # change path deps in project def
   sed -i$SEP'' "s|{.*path.*|\"^$VERSION\"|" pyproject.toml
-  # include project changelog
-  cp ../CHANGELOG.md ./
+#  # include project changelog
+#  cp ../CHANGELOG.md ./
   poetry build
   # export deps, with updated path deps
   mkdir -p info
