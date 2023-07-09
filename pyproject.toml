@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "poetry-monorepo"
-version = "0.1.0.post4.dev0+cc61170"
+name = "volttron-boptest"
+version = "0.0.1"
 description = "Monorepo container"
 license = "MIT"
-authors = ["Gerben Oostra <gerben.oostra@gmail.com>"]
+authors = ["Kefei Mo <kefei.mo@pnnl.gov>"]
 readme = "README.md"
 include = ["VERSION", "README.md"]
 
@@ -13,20 +13,20 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.1.0.post4.dev0+cc61170"
+version = "0.0.1"
 tag_format = "v$version"
 version_files = [
     "VERSION",
     "pyproject.toml:^version",
-    "package-a/VERSION",
-    "package-a/pyproject.toml:^version",
-    "package-a/package_a/__init__.py:^__version",
-    "package-b/VERSION",
-    "package-b/pyproject.toml:^version",
-    "package-b/package_b/__init__.py:^__version",
-    "service-c/VERSION",
-    "service-c/pyproject.toml:^version",
-    "service-c/service_c/__init__.py:^__version",
+#    "volttron-boptest/VERSION",
+#    "volttron-boptest/pyproject.toml:^version",
+#    "volttron-boptest/src/__init__.py:^__version",
+#    "package-b/VERSION",
+#    "package-b/pyproject.toml:^version",
+#    "package-b/package_b/__init__.py:^__version",
+#    "service-c/VERSION",
+#    "service-c/pyproject.toml:^version",
+#    "service-c/service_c/__init__.py:^__version",
     ]
 update_changelog_on_bump = true
 changelog_incremental = true
@@ -34,7 +34,7 @@ bump_message = "bump: $current_version → $new_version"
 
 
 [tool.poetry.dependencies]
-python = "~3.8"
+python = "~3.10"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.29.0"

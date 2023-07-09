@@ -17,7 +17,7 @@ ignore_missing_imports = true
 
 [tool.poetry]
 name = "volttron-boptest"
-version = "0.0.1-a"
+version = "0.0.1"
 description = "A Volttron agent that runs boptest simulation."
 authors = ["Kefei Mo <kefei.mo@pnnl.gov>"]
 license = "Apache-2.0"
@@ -42,7 +42,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
 volttron = ">=10.0.2rc0"
-dnp3-python = ">=0.2.3b3, <0.3.0"
 
 
 [tool.poetry.group.dev.dependencies]
