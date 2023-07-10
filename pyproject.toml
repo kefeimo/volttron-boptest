@@ -18,9 +18,9 @@ tag_format = "v$version"
 version_files = [
     "VERSION",
     "pyproject.toml:^version",
-#    "volttron-boptest/VERSION",
-#    "volttron-boptest/pyproject.toml:^version",
-#    "volttron-boptest/src/__init__.py:^__version",
+#    "volttron-boptest_integration/VERSION",
+#    "volttron-boptest_integration/pyproject.toml:^version",
+#    "volttron-boptest_integration/src/__init__.py:^__version",
 #    "package-b/VERSION",
 #    "package-b/pyproject.toml:^version",
 #    "package-b/package_b/__init__.py:^__version",

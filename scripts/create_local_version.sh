@@ -25,6 +25,6 @@ do
   echo "$VERSION" > "${p}/VERSION"
   sed -i$SEP'' "s/^version = .*/version = \"$VERSION\"/" "$p/pyproject.toml"
 done
-#sed -i$SEP'' "s/^__version__.*/__version__ = \"$VERSION\"/" volttron-boptest/src/boptest/__init__.py
+#sed -i$SEP'' "s/^__version__.*/__version__ = \"$VERSION\"/" volttron-boptest_integration/src/boptest_integration/__init__.py
 #sed -i$SEP'' "s/^__version__.*/__version__ = \"$VERSION\"/" package-b/package_b/__init__.py
 #sed -i$SEP'' "s/^__version__.*/__version__ = \"$VERSION\"/" service-c/service_c/__init__.py

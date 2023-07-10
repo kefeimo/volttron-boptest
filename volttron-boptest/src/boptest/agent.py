@@ -101,7 +101,7 @@ class BopTestAgent(Agent):
     # def boptest_up(testcase: str, docker_compose_file_path: str, is_verbose: bool = True) -> str:
     #     """
     #     EXAMPLE
-    #     boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest/docker-compose.yml")
+    #     boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest_integration/docker-compose.yml")
     #     """
     #     if is_verbose:
     #         verbose = "--verbose"

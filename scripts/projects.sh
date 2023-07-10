@@ -1,4 +1,4 @@
 #!/bin/sh
 
 # all python packages, in topological order
-PROJECTS='volttron-boptest'
+PROJECTS='volttron-boptest volttron-lib-boptest-integration'
