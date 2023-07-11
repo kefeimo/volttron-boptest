@@ -1,4 +1,4 @@
-from __future__ import  annotations
+from __future__ import annotations
 # -*- coding: utf-8 -*- {{{
 # ===----------------------------------------------------------------------===
 #
@@ -39,7 +39,8 @@ from pydnp3 import opendnp3
 from volttron.client.vip.agent import Agent, Core, RPC
 import subprocess
 from volttron import utils
-from .boptest_integration import BopTestSimIntegrationLocal
+# from ._boptest_integration import BopTestSimIntegrationLocal
+from boptest_integration.boptest_integration import BopTestSimIntegrationLocal
 import time
 import numpy as np
 
