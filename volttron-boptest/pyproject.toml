@@ -42,7 +42,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 #volttron = ">=10.0.2rc0"
-volttron-lib-boptest-integration = "^0.0.1"
+volttron-lib-boptest-integration = {path="../volttron-lib-boptest-integration", develop=true}
 
 
 [tool.poetry.group.dev.dependencies]
