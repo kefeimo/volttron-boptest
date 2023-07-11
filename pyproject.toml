@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "volttron-boptest"
+name = "volttron-boptest-monorepo"
 version = "0.0.1"
 description = "Monorepo container"
 license = "MIT"
