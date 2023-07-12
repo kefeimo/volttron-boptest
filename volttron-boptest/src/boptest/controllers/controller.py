@@ -69,7 +69,7 @@ class Controller:
             """
         pass
 
-    def get_forecast_parameters(self, forecast_parameters):
+    def get_forecast_parameters(self):
         """Get forecast parameters within the controller.
 
         Returns

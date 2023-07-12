@@ -41,7 +41,7 @@ from volttron import utils
 from boptest_integration.boptest_integration import BopTestSimIntegrationLocal
 import time
 import numpy as np
-from .controllers import PidController, SupController
+from .controllers import PidController, SupController, PidTwoZonesController
 
 
 setup_logging()
@@ -194,12 +194,14 @@ class BopTestAgent(Agent):
         # Initialize input to simulation from controller
         u = self.config.get("controller").get("u")
         # Initialize forecast storage structure
-        forecasts = None
+        forecast_data = self.config.get("controller").get("forecast_parameters")
 
         if controller_type == "pid":
             controller = PidController(u=u)
         elif controller_type == "sup":
             controller = SupController(u=u)
+        elif controller_type == "pidTwoZones":
+            controller = PidTwoZonesController(u=u, forecast_parameters=forecast_data)
         else:
             error_msg = "controller type needs to be one of ['pid', 'sup', 'pidTwoZones']"
             logging.error(error_msg)
@@ -226,15 +228,15 @@ class BopTestAgent(Agent):
             # custom_kpi_result['time'].append(y['time'])  # Track custom KPI calculation time
             # If controller needs a forecast, get the forecast data and provide the forecast to the controller
             # TODO: develop forecast feature
-            # if controller.use_forecast:
-            # if self.config.get("controller").get("use_forecast"):
-            #     # Retrieve forecast from restful API
-            #     forecast_parameters = controller.get_forecast_parameters()
-            #     forecast_data = check_response(requests.put('{0}/forecast'.format(url), json=forecast_parameters))
-            #     # Use forecast data to update controller-specific forecast data
-            #     forecasts = controller.update_forecasts(forecast_data, forecasts)
-            # else:
-            #     forecasts = None
+            if controller.use_forecast:
+                # Retrieve forecast from restful API
+                forecast_parameters = controller.get_forecast_parameters()
+                # forecast_data = check_response(requests.put('{0}/forecast'.format(url), json=forecast_parameters))
+                forecasts = self.bp_sim.put_forecast(**forecast_parameters)
+                # Use forecast data to update controller-specific forecast data
+                forecasts = controller.update_forecasts(forecast_data, forecasts)
+            else:
+                forecasts = None
             # Compute control signal input to simulation for the next timestep
             u = controller.compute_control(y, forecasts)
         logging.info('\nTest case complete.')

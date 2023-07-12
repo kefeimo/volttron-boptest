@@ -13,8 +13,8 @@
     "type": "pid",  # currently support "pid", "sup", pidTwoZones"
     "u":
     {
-        "oveAct_u": 0,
-        "oveAct_activate": 1
+      "oveAct_u": 0,
+      "oveAct_activate": 1
     }
   }
 
