@@ -10,8 +10,7 @@
 
   "controller":
   {
-    "name": "examples.python.controllers.pid",
-    "use_forecast": false,
+    "type": "pid",  # currently support "pid", "sup", pidTwoZones"
     "u":
     {
         "oveAct_u": 0,

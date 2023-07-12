@@ -43,7 +43,8 @@ classifiers = [
 python = ">=3.10,<4.0"
 #volttron = ">=10.0.2rc0"
 volttron-lib-boptest-integration = {path="../volttron-lib-boptest-integration", develop=true}
-
+numpy = ">0.0.0"
+pandas = ">0.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=6.2.4"

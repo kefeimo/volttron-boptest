@@ -34,8 +34,6 @@ import logging
 import sys
 import gevent
 
-from dnp3_python.dnp3station.outstation_new import MyOutStationNew
-from pydnp3 import opendnp3
 from volttron.client.vip.agent import Agent, Core, RPC
 import subprocess
 from volttron import utils
@@ -43,6 +41,7 @@ from volttron import utils
 from boptest_integration.boptest_integration import BopTestSimIntegrationLocal
 import time
 import numpy as np
+from .controllers import PidController
 
 
 setup_logging()
@@ -122,7 +121,7 @@ class BopTestAgent(Agent):
         Usually not needed if using the configuration store.
         """
         pass
-        # logging.info("=========== Starting Boptest agent onstart")
+        logging.info("=========== refactoring controller")
 
         # GET TEST INFORMATION
         # -------------------------------------------------------------------------
@@ -189,13 +188,26 @@ class BopTestAgent(Agent):
         # Set simulation time step
         res = self.bp_sim.put_step(step=step)
 
+        # Load controller info
+        # type (currently support pid, sup, pidTwoZones)
+        controller_type = self.config.get("controller").get("type")
         # Initialize input to simulation from controller
-        # u = controller.initialize()
         u = self.config.get("controller").get("u")
         # Initialize forecast storage structure
         forecasts = None
-        res = self.bp_sim.get_scenario()
-        logging.info("RESULT: {}".format(res))
+
+        if controller_type == "pid":
+            controller = PidController(u=u)
+        # elif controller_type == "sup":
+        #     controller = PidController(u=u)
+        else:
+            error_msg = "controller type needs to be one of ['pid', 'sup', 'pidTwoZones']"
+            logging.error(error_msg)
+            raise ValueError(error_msg)
+
+        # init using scenario endpoint
+        # res = self.bp_sim.get_scenario()
+        # logging.info("RESULT: {}".format(res))
 
         # Simulation Loop
         for t in range(total_time_steps):
