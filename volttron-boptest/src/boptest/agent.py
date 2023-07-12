@@ -41,7 +41,7 @@ from volttron import utils
 from boptest_integration.boptest_integration import BopTestSimIntegrationLocal
 import time
 import numpy as np
-from .controllers import PidController
+from .controllers import PidController, SupController
 
 
 setup_logging()
@@ -85,7 +85,7 @@ class BopTestAgent(Agent):
         self.config: "json" = self._parse_config(config_path)
         # TODO: design config template
         # TODO: create config data class (with validation)
-        # logging.debug(f"================ config: {self.config}")
+        logging.debug(f"================ config: {self.config}")
 
         # Init the result data
         self._results = None
@@ -198,8 +198,8 @@ class BopTestAgent(Agent):
 
         if controller_type == "pid":
             controller = PidController(u=u)
-        # elif controller_type == "sup":
-        #     controller = PidController(u=u)
+        elif controller_type == "sup":
+            controller = SupController(u=u)
         else:
             error_msg = "controller type needs to be one of ['pid', 'sup', 'pidTwoZones']"
             logging.error(error_msg)
@@ -235,8 +235,8 @@ class BopTestAgent(Agent):
             #     forecasts = controller.update_forecasts(forecast_data, forecasts)
             # else:
             #     forecasts = None
-            # # Compute control signal input to simulation for the next timestep
-            # u = controller.compute_control(y, forecasts)
+            # Compute control signal input to simulation for the next timestep
+            u = controller.compute_control(y, forecasts)
         logging.info('\nTest case complete.')
         logging.info('Elapsed time of test was {0} seconds.'.format(time.time() - start))
 
