@@ -1,39 +1,32 @@
-# volttron-dnp3-outstation
+# boptest-agent
 
-[![Eclipse VOLTTRON™](https://img.shields.io/badge/Eclips%20VOLTTRON--red.svg)](https://volttron.readthedocs.io/en/latest/)
-![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
-![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
-[![Pytests](https://github.com/eclipse-volttron/volttron-dnp3-outstation/actions/workflows/run-tests.yml/badge.svg)](https://github.com/eclipse-volttron/volttron-dnp3-outstation/actions/workflows/run-tests.yml)
-[![pypi version](https://img.shields.io/pypi/v/volttron-dnp3-outstation.svg)](https://pypi.org/project/volttron-dnp3-outstation/)
+The volttron-boptest-agent utilizes the volttron-lib-boptest-integration library to perform simulation control and
+benchmark tasks.
 
-Distributed Network Protocol (DNP
-or [DNP3](https://en.wikipedia.org/wiki/DNP3))
-has achieved a large-scale acceptance since its introduction in 1993. This
-protocol is an immediately deployable solution for monitoring remote sites because it was developed for communication of
-critical infrastructure status, allowing for reliable remote control.
+BOPTEST is designed to facilitate
+the performance evaluation and benchmarking of building control strategies, which
+contains these key components:
 
-DNP3 is typically used between centrally located masters and distributed remotes.
-Application layer fragments from Master DNP3 stations are typically requests for operations on data
-objects, and application layer fragments from Slave DNP3 stations (i.e., Outstation) are typically responses to those
-requests. A DNP3 Outstation may also transmit a message without a request (an unsolicited response).
-The volttron-dnp3-outstation is an implementation of the DNP3 master following
-the [VOLTTRON Agent Specifications](https://volttron.readthedocs.io/en/main/developing-volttron/developing-agents/specifications/index.html?highlight=agent#agent-specifications).
+1. Run-Time Environment (RTE): Deployed with Docker and accessed with a RESTful HTTP API, use the RTE to set up tests,
+   control building emulators, access data, and report KPIs.
 
-Note: to fully desmonstate the volttron-dnp3-outstation features, including polling data, setting point
-values, etc., it is suggested to establish connection between an outstation and a DNP3 master instance.
-The [dnp3-python](https://github.com/VOLTTRON/dnp3-python) can provide the essential master functionality,
-and as
-part of the volttron-dnp3-outstation dependency, it is immediately available after the volttron-dnp3-outstation is
-installed.
+1. Test Case Repository: A collection of ready-to-use building emulators representing a range of building types and HVAC
+   systems.
+
+1. Key Performance Indicator (KPI) Reporting: A set of KPIs is calculated by the the RTE using data from the building
+   emulator being controlled.
+
+For more information, please visit [IBPSA Project 1 - BOPTEST](https://github.com/ibpsa/project1-boptest).
 
 # Prerequisites
 
-* Python 3 (tested with Python3.8, Python3.9, Python3.10)
+* Python 3 (tested with Python3.10)
+* Linux OS (tested with Ubuntu 22.04)
 
 ## Python
 
 <details>
-<summary>To install specific Python version (e.g., Python 3.8), we recommend using <a href="https://github.com/pyenv/pyenv"><code>pyenv</code></a>.</summary>
+<summary>To install specific Python version (e.g., Python 3.10), we recommend using <a href="https://github.com/pyenv/pyenv"><code>pyenv</code></a>.</summary>
 
 ```shell
 # install pyenv
@@ -55,8 +48,7 @@ pyenv global system 3.10
 
 # Installation
 
-The following recipe walks through the steps to install and configure a DNP3 agent. Note that it uses default setup to
-work out-of-the-box. Please feel free to refer to related documentations for details.
+The following recipe walks through the steps to install and demonstrate basic usage of "volttron-boptest" agent.
 
 1. Create and activate a virtual environment.
 
@@ -72,7 +64,8 @@ work out-of-the-box. Please feel free to refer to related documentations for det
 1. Install volttron and start the platform.
 
    > **Note**:
-   > According to the [volttron-core#README](https://github.com/eclipse-volttron/volttron-core#readme), setup VOLTTRON_HOME
+   > According to the [volttron-core#README](https://github.com/eclipse-volttron/volttron-core#readme), setup
+   VOLTTRON_HOME
    > environment variable is mandatory:
    > ... if you have/had in the past, a monolithic VOLTTRON version that used the default VOLTTRON_HOME
    > $HOME/.volttron. This modular version of VOLTTRON cannot work with volttron_home used by monolithic version of
@@ -86,23 +79,25 @@ work out-of-the-box. Please feel free to refer to related documentations for det
     volttron -vv -l volttron.log &
     ```
 
-1. Install the "volttron-dnp3-outstation" dependency.
 
-   There are two options to install the DNP3 Driver. You can install this library using the version on PyPi or install
+1. Install the "volttron-boptest" dependency.
+
+   There are two options to install volttron-boptest. You can install this library using the version on PyPi or install
    it from the source code (`git clone` might be required.)
    Note: the `vctl install` command in the following step can handle dependency installation using pypi. However, in
-   this demo we demonstrate what is happening under the neath the hood by separating the dependency installation and agent registry
+   this demo we demonstrate what is happening under the neath the hood by separating the dependency installation and
+   agent registry
    steps.
 
     ```shell
     # option 1: install from pypi
-    pip install volttron-dnp3-outstation
+    pip install volttron-boptest
     
     # option 2: install from the source code (Note: `-e` option to use editable mode, useful for development.)
-    pip install [-e] <path-to-the-source-code-root>/volttron-dnp3-outstation/
+    pip install [-e] <path-to-the-source-code-root>/volttron-boptest/
     ```
 
-1. Install and start the "volttron-dnp3-outstation" agent.
+1. Install and start the "volttron-boptest" agent.
 
    Prepare the default config files:
 
@@ -112,198 +107,131 @@ work out-of-the-box. Please feel free to refer to related documentations for det
     touch config/boptest_integration-agent-config.json
     ```
 
-   Edit the `dnp3-outstation-config.json` as follows:
-    ```json
+   Edit the `testcase1_config.yml` as follows:
+    ```yaml
     {
-     "outstation_ip": "0.0.0.0",
-     "master_id": 2,
-     "outstation_id": 1,
-     "port":  21000
-    }
+     "testcase_name": "testcase1",
+     "initialize":  # for GET/initialize
+     {
+       "start_time": 0,
+       "warmup_period": 0
+     },
+     "scenario": null,
+     "step": 300,
+     "length": 86400,
+   
+     "controller":
+     {
+       "type": "pid",  # currently support "pid", "sup", pidTwoZones"
+       "u":
+       {
+         "oveAct_u": 0,
+         "oveAct_activate": 1
+       }
+     }
+   
+   }
     ```
 
+   Please see [examples/](examples) for other example config files.
+
    Use `vctl install` command to register to the volttron home path.
-   Note: for demo purposes and reproducibility, we assign vip-identity as "dnp3_outstation", but you can choose
+   Note: for demo purposes and reproducibility, we assign vip-identity as "volttron_boptest_agent", but you can choose
    any other valid agent identity as desired.
 
     ```shell
-    vctl install volttron-dnp3-outstation --agent-config <path-to-agent-config> \
-   --vip-identity dnp3_outstation \
+    vctl install volttron-boptest --agent-config <path-to-agent-config> \
+   --vip-identity volttron_boptest_agent \
    --start
     ```
 
-   (Optional) Use `vctl stauts` to verify the installation
-   ```shell
-   (env) kefei@ubuntu-22:~/sandbox/dnp3-outstation-sandbox$ vctl status
-   UUID   AGENT                             IDENTITY        TAG PRIORITY STATUS          HEALTH
-   e      volttron-dnp3-outstation-0.0.1rc0 dnp3_outstation              running [3408]  GOOD
-   ```
+   Observe Data
 
-# Basic Usage Example
+   The volttron-boptest agent publishes events on the message bus. To see these events in the Volttron log file, install
+   a [Listener Agent](https://pypi.org/project/volttron-listener/):
 
-Like other VOLTTRON agent, the volttron-dnp3-outstation agent provides public interface and can be evoked by VOLTTRON
-RPC calls. The volttron-dnp3-outstation provided a commandline interface `vdnp3_outstation` as an RPC method wrapper.
-Please see [run_volttron_dnp3_outstation_cli.py](./src/vdnp3_outstation/run_volttron_dnp3_outstation_cli.py) for
-implementation details of the RPC examples.
-
-1. (Optional) Inspect the dnp3 outstation cli help menu.
-
-   ```shell
-   (env) kefei@ubuntu-22:~/sandbox/dnp3-driver-sandbox$ python -m vdnp3_outstation.run_volttron_dnp3_outstation_cli -h
-   usage: dnp3-outstation [-h] [-aid <peer-name>]
-   
-   Run a dnp3 outstation agent. Specify agent identity, by default `dnp3_outstation`
-   
-   options:
-     -h, --help            show this help message and exit
-     -aid <peer-name>, --agent-identity <peer-name>
-                           specify agent identity (parsed as peer-name for rpc call), default 'dnp3_outstation'.
-
-   ```
-
-1. Start the dnp3 outstation cli
-
-   Start the volttron-dnp3-outstation cli. If you
-   follow along this demo, the agent vip-identity should be "dnp3_outstation".
-
-   ```shell
-   (env) kefei@ubuntu-22:~/sandbox/dnp3-agent-sandbox$ python -m vdnp3_outstation.run_volttron_dnp3_outstation_cli --agent-identity dnp3_outstation
-   2023-03-23 11:51:25,975 root DEBUG: Creating ZMQ Core None
-   2023-03-23 11:51:25,975 volttron.client.vip.agent.core DEBUG: address: ipc://@/home/kefei/.volttron/run/vip.socket
-   2023-03-23 11:51:25,975 volttron.client.vip.agent.core DEBUG: identity: 08953498-18e6-4070-9576-521bad3e82be
-   2023-03-23 11:51:25,975 volttron.client.vip.agent.core DEBUG: agent_uuid: None
-   2023-03-23 11:51:25,975 volttron.client.vip.agent.core DEBUG: serverkey: None
-   2023-03-23 11:51:25,976 volttron.client.vip.agent.core DEBUG:  environ keys: dict_keys(['SHELL', 'SESSION_MANAGER', 'QT_ACCESSIBILITY', 'COLORTERM', 'XDG_CONFIG_DIRS', 'SSH_AGENT_LAUNCHER', 'XDG_MENU_PREFIX', 'GNOME_DESKTOP_SESSION_ID', 'CONDA_EXE', '_CE_M', 'GNOME_SHELL_SESSION_MODE', 'SSH_AUTH_SOCK', 'HOMEBREW_PREFIX', 'XMODIFIERS', 'DESKTOP_SESSION', 'GTK_MODULES', 'PWD', 'LOGNAME', 'XDG_SESSION_DESKTOP', 'XDG_SESSION_TYPE', 'MANPATH', 'SYSTEMD_EXEC_PID', 'XAUTHORITY', 'VOLTTRON_HOME', 'HOME', 'USERNAME', 'IM_CONFIG_PHASE', 'LANG', 'LS_COLORS', 'XDG_CURRENT_DESKTOP', 'VIRTUAL_ENV', 'VTE_VERSION', 'WAYLAND_DISPLAY', 'GNOME_TERMINAL_SCREEN', 'INFOPATH', 'GNOME_SETUP_DISPLAY', 'LESSCLOSE', 'XDG_SESSION_CLASS', 'TERM', '_CE_CONDA', 'LESSOPEN', 'USER', 'HOMEBREW_CELLAR', 'GNOME_TERMINAL_SERVICE', 'CONDA_SHLVL', 'DISPLAY', 'SHLVL', 'QT_IM_MODULE', 'HOMEBREW_REPOSITORY', 'VIRTUAL_ENV_PROMPT', 'CONDA_PYTHON_EXE', 'XDG_RUNTIME_DIR', 'PS1', 'XDG_DATA_DIRS', 'PATH', 'GDMSESSION', 'DBUS_SESSION_BUS_ADDRESS', '_', 'RABBITMQ_NOT_AVAILABLE'])
-   2023-03-23 11:51:25,976 volttron.client.vip.agent.core DEBUG: server key from env None
-   2023-03-23 11:51:25,976 volttron.client.vip.agent.core DEBUG: AGENT RUNNING on ZMQ Core 08953498-18e6-4070-9576-521bad3e82be
-   2023-03-23 11:51:25,976 volttron.client.vip.agent.core DEBUG: keys: server: _M0Ds3SfjECMrmXulHQZtPIlsYW7JwzXMXJH1Koy2T4 public: _M0Ds3SfjECMrmXulHQZtPIlsYW7JwzXMXJH1Koy2T4, secret: yfjc9g5znWMEjTSX3kfINGwhCvaDI80fK8vN76-C7SQ
-   2023-03-23 11:51:25,977 volttron.client.vip.zmq_connection DEBUG: ZMQ connection 08953498-18e6-4070-9576-521bad3e82be
-   2023-03-23 11:51:25,977 volttron.client.vip.zmq_connection DEBUG: connecting to url ipc://@/home/kefei/.volttron/run/vip.socket?publickey=_M0Ds3SfjECMrmXulHQZtPIlsYW7JwzXMXJH1Koy2T4&secretkey=yfjc9g5znWMEjTSX3kfINGwhCvaDI80fK8vN76-C7SQ&serverkey=_M0Ds3SfjECMrmXulHQZtPIlsYW7JwzXMXJH1Koy2T4
-   2023-03-23 11:51:25,977 volttron.client.vip.zmq_connection DEBUG: url type is <class 'str'>
-   2023-03-23 11:51:25,981 volttron.client.vip.agent.core INFO: Connected to platform: identity: 08953498-18e6-4070-9576-521bad3e82be version: 1.0
-   2023-03-23 11:51:25,981 volttron.client.vip.agent.core DEBUG: Running onstart methods.
-    
-   ========================= MENU ==================================
-   <ai> - set analog-input point value
-   <ao> - set analog-output point value
-   <bi> - set binary-input point value
-   <bo> - set binary-output point value
-    
-   <dd> - display database
-   <di> - display (outstation) info
-   <cr> - config then restart outstation
-   =================================================================
-    
-   !!!!!!!!! WARNING: The outstation is NOT connected !!!!!!!!!
-   {'outstation_ip_str': '0.0.0.0', 'port': 20000, 'masterstation_id_int': 2, 'outstation_id_int': 1, 'peer': 'dnp3_outstation'}
-    
-   ======== Your Input Here: ==(DNP3 OutStation Agent)======
- 
-   ```
-
-1. Start a dnp3 master to establish connection.
-
-   If there is no connection between an outstation and a master, you may see the
-   warning `!!!!!!!!! WARNING: The outstation is NOT connected !!!!!!!!!`. To establish such a connection, **open
-   another terminal**, and
-   run `dnp3demo master`. (More details about the "dnp3demo" module, please
-   see [dnp3demo-Module.md](https://github.com/VOLTTRON/dnp3-python/blob/main/docs/dnp3demo-Module.md))
-
-   ```shell
-    ===== Master Operation MENU ==================================
-    <ao> - set analog-output point value (for remote control)
-    <bo> - set binary-output point value (for remote control)
-    <dd> - display/polling (outstation) database
-    <dc> - display configuration
-    =================================================================
-
-    
-    ======== Your Input Here: ==(master)======
+    ```
+    vctl install volttron-listener --start
     ```
 
-   Note: by default, both the volttron-dnp3-outstation and the dnp3demo master uses configurations to
-   assure valid connection out-of-the-box. e.g., port=20000. Feel free to configure the connection parameters as
-   desired.
+(Optional) Use `vctl stauts` to verify the installation
 
-1. Basic volttron-dnp3-outstation operations
-     ```
-   ======== Your Input Here: ==(DNP3 OutStation Agent)======
-   ai
-   You chose <ai> - set analog-input point value
-   Type in <float> and <index>. Separate with space, then hit ENTER. e.g., `1.4321, 1`.
-   Type 'q', 'quit', 'exit' to main menu.
-
-    ======== Your Input Here: ==(DNP3 OutStation Agent)======
-    0.1212 0
-    {'Analog': {0: 0.1212, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None}}
-    You chose <ai> - update analog-input point value (for local reading)
-    Type in <float> and <index>. Separate with space, then hit ENTER.
-    Type 'q', 'quit', 'exit' to main menu.
-     
-     
-    ======== Your Input Here: ==(DNP3 OutStation Agent)======
-    1.2323 1
-    {'Analog': {0: 0.1212, 1: 1.2323, 2: None, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None}}
-    You chose <ai> - update analog-input point value (for local reading)
-    Type in <float> and <index>. Separate with space, then hit ENTER.
-    Type 'q', 'quit', 'exit' to main menu.
+   ```shell
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ vctl status
+   UUID   AGENT                        IDENTITY                     TAG PRIORITY STATUS          HEALTH 
+   a      volttron-boptest-agent-0.0.1 volttron_boptest_agent                    running [59108] GOOD
+   2      volttron-listener-0.2.0rc0   volttron-listener-0.2.0rc0_1              running [59096] GOOD
    ```
-     <details>
-     <summary>Example of interaction with the `vdnp3_outstation` module </summary>
 
-     ```shell
-     (env) kefei@ubuntu-22:~/sandbox/dnp3-agent-sandbox$ python -m vdnp3_outstation.run_volttron_dnp3_outstation_cli --agent-identity dnp3_outstation
-     dnp3demo.run_outstation {'command': 'outstation', 'outstation_ip=': '0.0.0.0', 'port=': 20000, 'master_id=': 2, 'outstation_id=': 1}
-     ms(1678770551216) INFO    manager - Starting thread (0)
-     2023-03-14 00:09:11,216	control_workflow_demo	INFO	Connection Config
-     2023-03-14 00:09:11,216	control_workflow_demo	INFO	Connection Config
-     2023-03-14 00:09:11,216	control_workflow_demo	INFO	Connection Config
-     ms(1678770551216) INFO    server - Listening on: 0.0.0.0:20000
-     2023-03-14 00:09:11,216	control_workflow_demo	DEBUG	Initialization complete. Outstation in command loop.
-     2023-03-14 00:09:11,216	control_workflow_demo	DEBUG	Initialization complete. Outstation in command loop.
-     2023-03-14 00:09:11,216	control_workflow_demo	DEBUG	Initialization complete. Outstation in command loop.
-     Connection error.
-     Connection Config {'outstation_ip_str': '0.0.0.0', 'port': 20000, 'masterstation_id_int': 2, 'outstation_id_int': 1}
-     Start retry...
-     Connection error.
-     Connection Config {'outstation_ip_str': '0.0.0.0', 'port': 20000, 'masterstation_id_int': 2, 'outstation_id_int': 1}
-     ms(1678770565247) INFO    server - Accepted connection from: 127.0.0.1
-     ==== Outstation Operation MENU ==================================
-     <ai> - update analog-input point value (for local reading)
-     <ao> - update analog-output point value (for local control)
-     <bi> - update binary-input point value (for local reading)
-     <bo> - update binary-output point value (for local control)
-     <dd> - display database
-     <dc> - display configuration
-     =================================================================
-      
-      
-     ======== Your Input Here: ==(DNP3 OutStation Agent)======
-     ai
-     You chose <ai> - update analog-input point value (for local reading)
-     Type in <float> and <index>. Separate with space, then hit ENTER.
-     Type 'q', 'quit', 'exit' to main menu.
-      
-      
-     ======== Your Input Here: ==(DNP3 OutStation Agent)======
-     0.1212 0
-     {'Analog': {0: 0.1212, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None}}
-     You chose <ai> - update analog-input point value (for local reading)
-     Type in <float> and <index>. Separate with space, then hit ENTER.
-     Type 'q', 'quit', 'exit' to main menu.
-      
-      
-     ======== Your Input Here: ==(DNP3 OutStation Agent)======
-     1.2323 1
-     {'Analog': {0: 0.1212, 1: 1.2323, 2: None, 3: None, 4: None, 5: None, 6: None, 7: None, 8: None, 9: None}}
-     You chose <ai> - update analog-input point value (for local reading)
-     Type in <float> and <index>. Separate with space, then hit ENTER.
-     Type 'q', 'quit', 'exit' to main menu.
-      
-      
-     ======== Your Input Here: ==(DNP3 OutStation Agent)======
-     ```
-     </details>
+1. (optional) Inspect the volttron.log file
+
+   <details>
+   <summary> Within the volttron.log, we should see similar logs as follows</summary>
+
+   ```shell
+    # Create config file place holders
+   KPI RESULTS 
+   -----------
+   2023-07-13 18:27:51,124 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: emis_tot: 0.2147137757521314 KgCO2/m$^2$
+   2023-07-13 18:27:51,174 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: ener_tot: 1.073568878760657 kWh/m$^2$
+   2023-07-13 18:27:51,223 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: idis_tot: 508.47225004790033 ppmh/zone
+   2023-07-13 18:27:51,280 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: pdih_tot: None kW/m$^2$
+   2023-07-13 18:27:51,330 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: pele_tot: None kW/m$^2$
+   2023-07-13 18:27:51,381 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: pgas_tot: 0.09615811655434148 kW/m$^2$
+   2023-07-13 18:27:51,436 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: tdis_tot: 5.316029375566828 Kh/zone
+   2023-07-13 18:27:51,494 (volttron-boptest-agent-0.0.1 59108) root(186) INFO: time_rat: 0.001856946445725582 s/s
+   2023-07-13 18:27:51,550 (volttron-boptest-agent-0.0.1 59108) root(202) INFO: ======== run workflow completed.======
+   2023-07-13 18:27:51,553 (volttron-boptest-agent-0.0.1 59108) <stdout>(0) INFO: ["======= kpi {'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': 1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, 'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': 5.316029375566828, 'time_rat': 0.001856946445725582}"]
+   2023-07-13 18:27:51,558 (volttron-boptest-agent-0.0.1 59108) root(129) INFO: =========== refactoring onstart
+   2023-07-13 18:27:52,067 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,071 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,073 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,074 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,075 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,076 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,078 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,079 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,081 (volttron-listener-0.2.0rc0 59096) listener.agent(104) INFO: Peer: pubsub, Sender: volttron_boptest_agent:, Bus: , Topic: PNNL/BUILDING/UNIT/kpi, Headers: {'min_compatible_version': '3.0', 'max_compatible_version': ''}, Message: 
+   ("{'cost_tot': 0.075149821513246, 'emis_tot': 0.2147137757521314, 'ener_tot': "
+    "1.073568878760657, 'idis_tot': 508.47225004790033, 'pdih_tot': None, "
+    "'pele_tot': None, 'pgas_tot': 0.09615811655434148, 'tdis_tot': "
+    "5.316029375566828, 'time_rat': 0.001856946445725582}")
+   2023-07-13 18:27:52,084 (volttron-boptest-agent-0.0.1 59108) root(305) INFO: ======== onstart completed.======
+   ```
+
+   </details>
 
 # Development
 

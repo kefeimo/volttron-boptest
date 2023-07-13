@@ -1,6 +1,8 @@
 # boptest-integration
 
-This python library is used for integrating boptest simulation into VOLTTRON platform. BOPTEST is designed to facilitate
+This python library is used for integrating boptest simulation into VOLTTRON platform. 
+
+BOPTEST is designed to facilitate
 the performance evaluation and benchmarking of building control strategies, which
 contains these key components:
 
@@ -45,8 +47,7 @@ pyenv global system 3.10
 
 # Installation
 
-The following recipe walks through the steps to install and configure a DNP3 agent. Note that it uses default setup to
-work out-of-the-box. Please feel free to refer to related documentations for details.
+The following recipe walks through the steps to install and run use case example.
 
 1. Create and activate a virtual environment.
 
@@ -60,7 +61,7 @@ work out-of-the-box. Please feel free to refer to related documentations for det
 
 1. Install the "volttron-boptest-integration" library.
 
-   There are two options to install the DNP3 Driver. You can install this library using the version on PyPi or install
+   There are two options to install "volttron-boptest-integration". You can install this library using the version on PyPi or install
    it from the source code (`git clone` might be required.)
 
     ```shell
