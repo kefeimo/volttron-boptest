@@ -69,7 +69,7 @@ class BopTestSimIntegrationLocal:
         res = requests.get('{0}/name'.format(self.url)).json()['payload']
         return res.get('name')
 
-    def put_initialize(self, start_time: float, warmup_period: float) -> dict:
+    def put_initialize(self, start_time: float, warmup_period: float, payload_only=True) -> dict:
         """
         wrapper on PUT/initialize
         electricity_price in ["constant", "dynamic", "highly_dynamic"].
@@ -81,9 +81,14 @@ class BopTestSimIntegrationLocal:
         self.start_time = start_time
         self.current_time = start_time
         self.warmup_period = warmup_period
-        res = requests.put('{0}/initialize'.format(self.url),
-                           data={'start_time': start_time,
-                                 'warmup_period': warmup_period}).json()
+        if payload_only:
+            res = requests.put('{0}/initialize'.format(self.url),
+                               data={'start_time': start_time,
+                                     'warmup_period': warmup_period}).json()['payload']
+        else:
+            res = requests.put('{0}/initialize'.format(self.url),
+                               data={'start_time': start_time,
+                                     'warmup_period': warmup_period}).json()
         return res
 
     def retrieve_time_info(self) -> dict:
@@ -97,16 +102,21 @@ class BopTestSimIntegrationLocal:
                 "warmup_period": self.warmup_period,
                 "current_time": self.current_time}
 
-    def put_scenario(self, time_period: str, electricity_price: str):
+    def put_scenario(self, time_period: str, electricity_price: str, payload_only=True):
         """
         wrapper on PUT/scenario
         EXAMPLE:
         put_scenario(time_period="peak_heat_day", electricity_price="dynamic")
         """
         self.is_scenario = True
-        res = requests.put('{0}/scenario'.format(self.url),
-                           data={'time_period': time_period,
-                                 'electricity_price': electricity_price}).json()
+        if payload_only:
+            res = requests.put('{0}/scenario'.format(self.url),
+                               data={'time_period': time_period,
+                                     'electricity_price': electricity_price}).json()['payload']
+        else:
+            res = requests.put('{0}/scenario'.format(self.url),
+                               data={'time_period': time_period,
+                                     'electricity_price': electricity_price}).json()
         return res
 
     def get_scenario(self):
@@ -188,11 +198,11 @@ class BopTestSimIntegrationLocal:
         self.current_time = res.get("payload").get("time")
         return res
 
-    def get_results(self, point_names: list, start_time: float = -np.inf, final_time: float = np.inf):
+    def put_results(self, point_names: list, start_time: float = -np.inf, final_time: float = np.inf):
         """
-        wrapper on GET/results ('start_time':-np.inf, 'final_time':np.inf)
+        wrapper on PUT/results ('start_time':-np.inf, 'final_time':np.inf)
         EXAMPLE
-        get_results(point_names=['reaTZon_y'])
+        put_results(point_names=['reaTZon_y'])
         >> {'message': "Queried results data successfully for point names [u'reaTZon_y'].",
         >> 'payload': {'reaTZon_y': [294.48313766898406], 'time': [2505600.0]}, 'status': 200}
         """
@@ -200,7 +210,7 @@ class BopTestSimIntegrationLocal:
         res = requests.put('{0}/results'.format(self.url), data=args).json()
         return res
 
-    def get_kpi(self):
+    def get_kpi(self, payload_only=True):
         """
         wrapper on GET/kpi
         EXAMPLE
@@ -208,7 +218,10 @@ class BopTestSimIntegrationLocal:
         >> {'message': 'Queried KPIs successfully.', 'payload': {'cost_tot': 0.006980178107630843,
         >> 'emis_tot': 0.004598381633034914, 'ener_tot': 0.02 ...
         """
-        res = requests.get('{0}/kpi'.format(self.url)).json()
+        if payload_only:
+            res = requests.get('{0}/kpi'.format(self.url)).json()["payload"]
+        else:
+            res = requests.get('{0}/kpi'.format(self.url)).json()
         return res
 
     def get_forecast_points(self, keys_only=True):
@@ -264,6 +277,7 @@ class BopTestSimIntegrationLocal:
 
 
 
+
 class BopTestSimIntegration:
     """
     The class is responsible for integration with BopTest simulation, mainly wrap on its RestAPI
@@ -313,8 +327,8 @@ if __name__ == "__main__":
     # res = bp_sim.get_step()
     # print(res)
 
-    # res = bp_sim.put_initialize(start_time=31*24*3600, warmup_period=7*24*3600)
-    # print(res)
+    res = bp_sim.put_initialize(start_time=31*24*3600, warmup_period=7*24*3600)
+    print(res)
     # #
     # # from time import sleep
     # #
@@ -327,25 +341,17 @@ if __name__ == "__main__":
     # res = bp_sim.retrieve_time_info()
     # print(res)
     #
-    # res = bp_sim.get_results(["reaTZon_y"], start_time=29*3600*24, final_time= 29*3600*24 +10)
+    # res = bp_sim.put_results(["reaTZon_y"], start_time=29 * 3600 * 24, final_time=29 * 3600 * 24 + 10)
     # print(res)
     # print(res.keys())
     #
     # res = bp_sim.get_kpi()
     # print(res)
 
-    res = bp_sim.get_forecast_points()
-    print("============ get_forecast_points")
+    scenario = {"time_period": "test_day", "electricity_price": "dynamic"}
+    res = bp_sim.put_scenario(**scenario)
     print(res)
 
-    forecast_parameters = {'point_names': ['LowerSetp[North]',
-                                           'UpperSetp[North]',
-                                           'LowerSetp[South]',
-                                           'UpperSetp[South]'],
-                           'horizon': 600,
-                           'interval': 300}
-
-    res = bp_sim.put_forecast(**forecast_parameters)
-    print("============ put_forecast")
-    print(res)
+    print("========")
+    print(bp_sim.retrieve_time_info())
 
