@@ -42,7 +42,7 @@ class Interface:
         # check if running the proper testcase
         testcase_name = self.config.get("testcase_name")
         if name != testcase_name:
-            raise ValueError(f"The running testcase {name} is different from the config testcase_name {testcase_name}")
+            raise ValueError(fr"Running testcase `{name}` inconsistent with config testcase_name `{testcase_name}`.")
         # Retrieve a list of inputs (controllable points) for the model from REST API
         inputs = self.bp_sim.get_inputs(keys_only=False)
         logger.info('Control Inputs:\t\t\t{0}'.format(inputs))

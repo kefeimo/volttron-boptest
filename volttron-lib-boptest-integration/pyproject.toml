@@ -26,8 +26,10 @@ readme = "README.md"
 homepage = "https://github.com/eclipse-volttron/volttron-boptest"
 repository = "https://github.com/eclipse-volttron/volttron-boptest"
 packages = [{ include = "boptest_integration", from = "src" },
+#            { include = "controllers", from = "src" },
+#            { include = "interface", from = "src" },
 ]
-keywords = ["volttron", "agent", "boptest", "simulation", "application"]
+keywords = ["volttron", "boptest", "simulation", "integration"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
