@@ -1,26 +1,27 @@
 from boptest_integration.interface import Interface
 
 CONFIG = {
-  "initialize":  # for GET/initialize
-  {
-    "start_time": 0,
-    "warmup_period": 0
-  },
-  "scenario": None,
-  "step": 3600,
-  "length": 172800,
+    "testcase_name": "testcase2",
+    "initialize":  # for GET/initialize
+        {
+            "start_time": 0,
+            "warmup_period": 0
+        },
+    "scenario": None,
+    "step": 3600,
+    "length": 172800,
 
-  "controller":
-  {
-    "type": "sup",  # currently support "pid", "sup", pidTwoZones"
-    "u":
-      {
-        'oveTSetRooHea_u': 295.15,  # 22 + 273.15
-        'oveTSetRooHea_activate': 1,
-        'oveTSetRooCoo_u': 296.15,  # 23 + 273.15
-        'oveTSetRooCoo_activate': 1
-      }
-  }
+    "controller":
+        {
+            "type": "sup",  # currently support "pid", "sup", pidTwoZones"
+            "u":
+                {
+                    'oveTSetRooHea_u': 295.15,  # 22 + 273.15
+                    'oveTSetRooHea_activate': 1,
+                    'oveTSetRooCoo_u': 296.15,  # 23 + 273.15
+                    'oveTSetRooCoo_activate': 1
+                }
+        }
 
 }
 

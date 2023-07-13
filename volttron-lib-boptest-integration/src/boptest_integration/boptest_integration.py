@@ -193,12 +193,18 @@ class BopTestSimIntegrationLocal:
         post_advance(self, data={'oveHeaPumY_u':0.5, 'oveHeaPumY_activate': 1})
         >> 'payload': {'oveFan_activate': 0.0, 'oveFa ...
         """
-        if payload_only:
-            res = requests.post('{0}/advance'.format(self.url), data=data).json()["payload"]
-            self.current_time = res.get("time")
-        else:
-            res = requests.post('{0}/advance'.format(self.url), data=data).json()
-            self.current_time = res.get("payload").get("time")
+        res = None
+        try:
+            if payload_only:
+                res = requests.post('{0}/advance'.format(self.url), data=data).json()["payload"]
+                self.current_time = res.get("time")
+            else:
+                res = requests.post('{0}/advance'.format(self.url), data=data).json()
+                self.current_time = res.get("payload").get("time")
+        except Exception as e:
+            print(e)
+            print(f"===== data {data}")
+            print(f"===== res {requests.post('{0}/advance'.format(self.url), data=data).json()}")
         return res
 
     def put_results(self, point_names: list, start_time: float = -np.inf, final_time: float = np.inf):
@@ -246,7 +252,7 @@ class BopTestSimIntegrationLocal:
             res = requests.get('{0}/forecast_points'.format(self.url)).json()['payload']
         return res
 
-    def put_forecast(self, point_names: list, horizon: float, interval: float, payload_only=True) -> float:
+    def put_forecast(self, point_names: list, horizon: float, interval: float, payload_only=True) -> dict:
         """
         wrapper on PUT/forecast
         RETURN:

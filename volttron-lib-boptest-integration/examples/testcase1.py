@@ -1,6 +1,7 @@
 from boptest_integration.interface import Interface
 
 CONFIG = {
+    "testcase_name": "testcase1",
     "initialize":  # for GET/initialize
         {
             "start_time": 0,

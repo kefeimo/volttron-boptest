@@ -1,26 +1,36 @@
 from boptest_integration.interface import Interface
 
 CONFIG = {
-  "initialize":  # for GET/initialize
-  {
-    "start_time": 0,
-    "warmup_period": 0
-  },
-  "scenario": None,
-  "step": 3600,
-  "length": 172800,
+    "testcase_name": "testcase3",
+    "initialize":  # for GET/initialize
+        {
+            "start_time": 0,
+            "warmup_period": 0
+        },
+    "scenario": None,
+    "step": 300,
+    "length": 172800,  # 48*3600
 
-  "controller":
-  {
-    "type": "sup",  # currently support "pid", "sup", pidTwoZones"
-    "u":
-      {
-        'oveTSetRooHea_u': 295.15,  # 22 + 273.15
-        'oveTSetRooHea_activate': 1,
-        'oveTSetRooCoo_u': 296.15,  # 23 + 273.15
-        'oveTSetRooCoo_activate': 1
-      }
-  }
+    "controller":
+        {
+            "type": "pidTwoZones",  # currently support "pid", "sup", pidTwoZones"
+            "u":
+                {
+                    'oveActNor_u': 0,
+                    'oveActNor_activate': 1,
+                    'oveActSou_u': 0,
+                    'oveActSou_activate': 1
+                },
+            "forecast_parameters":
+                {
+                    'point_names': ['LowerSetp[North]',
+                                    'UpperSetp[North]',
+                                    'LowerSetp[South]',
+                                    'UpperSetp[South]'],
+                    'horizon': 600,
+                    'interval': 300
+                }
+        }
 
 }
 

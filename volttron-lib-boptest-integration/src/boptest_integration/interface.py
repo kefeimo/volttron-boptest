@@ -39,6 +39,10 @@ class Interface:
         # Retrieve testcase name from REST API
         name = self.bp_sim.get_name()
         logger.info('Name:\t\t\t\t{0}'.format(name))
+        # check if running the proper testcase
+        testcase_name = self.config.get("testcase_name")
+        if name != testcase_name:
+            raise ValueError(f"The running testcase {name} is different from the config testcase_name {testcase_name}")
         # Retrieve a list of inputs (controllable points) for the model from REST API
         inputs = self.bp_sim.get_inputs(keys_only=False)
         logger.info('Control Inputs:\t\t\t{0}'.format(inputs))
@@ -143,9 +147,9 @@ class Interface:
                 # Retrieve forecast from restful API
                 forecast_parameters = controller.get_forecast_parameters()
                 # forecast_data = check_response(requests.put('{0}/forecast'.format(url), json=forecast_parameters))
-                forecasts = self.bp_sim.put_forecast(**forecast_parameters)
+                forecast_data = self.bp_sim.put_forecast(**forecast_parameters)
                 # Use forecast data to update controller-specific forecast data
-                forecasts = controller.update_forecasts(forecast_data, forecasts)
+                forecasts = controller.update_forecasts(forecast_data=forecast_data, forecasts=forecasts)
             else:
                 forecasts = None
             # Compute control signal input to simulation for the next timestep

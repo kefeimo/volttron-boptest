@@ -68,6 +68,8 @@ class Controller:
 
             """
         pass
+        # TODO: forecasts should not be part of the control. Refactor it out
+        # Note: only pidTwoZones use forecasts as part of the update_forecasts, but only to validate config
 
     def get_forecast_parameters(self):
         """Get forecast parameters within the controller.
@@ -82,7 +84,7 @@ class Controller:
         """
         return self._forecast_parameters
 
-    def update_forecasts(self, forecast_data, forecasts):
+    def update_forecasts(self, forecast_data: dict, forecasts: pd.DataFrame):
         """Update forecast_store within the controller.
 
         This controller only uses the first timestep of the forecast for upper
@@ -103,15 +105,8 @@ class Controller:
             Updated DataFrame of forcast values used over time.
 
         """
-
-        # forecast_config = self.get_forecast_parameters()['point_names']
-        #
-        # if forecasts is None:
-        #     forecasts = pd.DataFrame(columns=forecast_config)
-        # for i in forecast_config:
-        #     t = forecast_data['time'][0]
-        #     forecasts.loc[t, i] = forecast_data[i][0]
-        #
-        # return forecasts
         pass
+        # TODO: this method is not essential, consider refactoring it out.
+        # Note: only pidTwoZones use forecasts as part of the update_forecasts, but only for formatting purpose
+
 

@@ -1,24 +1,25 @@
 from boptest_integration.interface import Interface
 
 CONFIG = {
-  "initialize": None,
-  "scenario":
-  {
-    "time_period": "test_day",
-    "electricity_price": "dynamic"
-  },
-  "step": 300,
-  "length": 1728000,
+    "testcase_name": "testcase1",
+    "initialize": None,
+    "scenario":
+        {
+            "time_period": "test_day",
+            "electricity_price": "dynamic"
+        },
+    "step": 300,
+    "length": 1728000,
 
-  "controller":
-  {
-    "type": "pid",  # currently support "pid", "sup", pidTwoZones"
-    "u":
-    {
-      "oveAct_u": 0,
-      "oveAct_activate": 1
-    }
-  }
+    "controller":
+        {
+            "type": "pid",  # currently support "pid", "sup", pidTwoZones"
+            "u":
+                {
+                    "oveAct_u": 0,
+                    "oveAct_activate": 1
+                }
+        }
 
 }
 
