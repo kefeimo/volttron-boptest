@@ -186,16 +186,19 @@ class BopTestSimIntegrationLocal:
         res = requests.put('{0}/step'.format(self.url), data={'step': step})
         return res
 
-    def post_advance(self, data: dict = None):
+    def post_advance(self, data: dict = None, payload_only=True):
         """
         wrapper on POST/advance
         EXAMPLE
         post_advance(self, data={'oveHeaPumY_u':0.5, 'oveHeaPumY_activate': 1})
-        >> {'message': 'Advanced simulation successfully from 2685600.0s to 2692800.0s.',
         >> 'payload': {'oveFan_activate': 0.0, 'oveFa ...
         """
-        res = requests.post('{0}/advance'.format(self.url), data=data).json()
-        self.current_time = res.get("payload").get("time")
+        if payload_only:
+            res = requests.post('{0}/advance'.format(self.url), data=data).json()["payload"]
+            self.current_time = res.get("time")
+        else:
+            res = requests.post('{0}/advance'.format(self.url), data=data).json()
+            self.current_time = res.get("payload").get("time")
         return res
 
     def put_results(self, point_names: list, start_time: float = -np.inf, final_time: float = np.inf):
