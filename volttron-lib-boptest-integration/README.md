@@ -63,7 +63,7 @@ path. Feel free to modify the workflow as desired.
    Receiving objects: 100% (450/450), 3.66 MiB | 7.06 MiB/s, done.
    Resolving deltas: 100% (192/192), done.
    kefei@ubuntu-22:~/sandbox$ cd volttron-boptest/
-   kefei@ubuntu-22:~/sandbox/volttron-boptest$ l
+   kefei@ubuntu-22:~/sandbox/volttron-boptest$ 
    ```
 
 1. Create and activate a virtual environment.
