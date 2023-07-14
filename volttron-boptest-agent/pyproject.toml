@@ -16,7 +16,7 @@ ignore_missing_imports = true
 ignore_missing_imports = true
 
 [tool.poetry]
-name = "volttron-boptest-agent"
+name = "volttron-boptest"
 version = "0.0.1"
 description = "A Volttron agent that runs boptest simulation."
 authors = ["Kefei Mo <kefei.mo@pnnl.gov>"]
