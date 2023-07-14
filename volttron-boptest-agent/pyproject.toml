@@ -16,7 +16,7 @@ ignore_missing_imports = true
 ignore_missing_imports = true
 
 [tool.poetry]
-name = "volttron-boptest-agent"
+name = "volttron-boptest"
 version = "0.0.1"
 description = "A Volttron agent that runs boptest simulation."
 authors = ["Kefei Mo <kefei.mo@pnnl.gov>"]
@@ -41,9 +41,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-#volttron = ">=10.0.2rc0"
-volttron-lib-boptest-integration = "^0.0.1"
-#volttron-lib-boptest-integration = "^0.0.1"
+volttron-lib-boptest-integration = {path="../volttron-lib-boptest-integration", develop=true}
 numpy = ">0.0.0"
 pandas = ">0.0.0"
 

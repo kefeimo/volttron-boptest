@@ -25,10 +25,7 @@ maintainers = ["Volttron Team <volttron@pnnl.gov>"]
 readme = "README.md"
 homepage = "https://github.com/eclipse-volttron/volttron-boptest"
 repository = "https://github.com/eclipse-volttron/volttron-boptest"
-packages = [{ include = "boptest_integration", from = "src" },
-#            { include = "controllers", from = "src" },
-#            { include = "interface", from = "src" },
-]
+packages = [{ include = "boptest_integration", from = "src" }]
 keywords = ["volttron", "boptest", "simulation", "integration"]
 classifiers = [
     "Development Status :: 3 - Alpha",
