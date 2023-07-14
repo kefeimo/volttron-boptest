@@ -44,13 +44,14 @@ for p in $_projects
 do
   ls -altr "${DIR}/../${p}/dist/"
   cp $FLAG "${DIR}/../${p}/dist/"*".whl" "${DIR}/../dist/"
+  cp $FLAG "${DIR}/../${p}/dist/"*".tar.gz" "${DIR}/../dist/"
 done
 echo "=========="
 ls -altr "${DIR}/../dist/"
 # then copying these to each project
-for p in $_projects
-do
-  cp $FLAG "${DIR}/../dist/"*".whl" "${DIR}/../${p}/dist/"
-  cp $FLAG "${DIR}/../info/"*"" "${DIR}/../${p}/info/"
-  ls -altr "${DIR}/../${p}/dist/"
-done
+# for p in $_projects
+# do
+#   cp $FLAG "${DIR}/../dist/"*".whl" "${DIR}/../${p}/dist/"
+#   cp $FLAG "${DIR}/../info/"*"" "${DIR}/../${p}/info/"
+#   ls -altr "${DIR}/../${p}/dist/"
+# done
