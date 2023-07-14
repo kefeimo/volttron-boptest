@@ -1,4 +1,4 @@
-# Volttron BopTest Monorepo
+# VOLTTRON BopTest
 
 This repo hosts both volttron-boptest-agent and volttron-lib-boptest-integration. For more information about mono-repo,
 please see [Poetry Monorepo](https://gitlab.com/craig81/poetry-monorepo).
