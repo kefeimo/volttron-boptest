@@ -167,8 +167,8 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
 
    Verify boptest simulation server is running properly:
    ```shell
-   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ curl http://127.0.0.1:5000/measurements
-   {"message":"Queried the measurements successfully.","payload":{"CO2RooAir_y":{"Desc ...
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ curl http://127.0.0.1:5000/name
+   {"message":"Queried the name of the test case successfully.","payload":{"name":"testcase1"},"status":200}
    ```
 
 1. Run example usecases.
