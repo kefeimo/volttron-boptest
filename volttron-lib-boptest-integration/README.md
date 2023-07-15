@@ -139,7 +139,7 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
 
    The basic command to start a test case is by using `TESTCASE=<testcase_name> docker-compose up`.
 
-   For demo purpose, we will build and deploy testcase1, for avialbe testcases please
+   For demo purpose, we will build and deploy testcase1, for available testcases please
    see [testcases/](https://github.com/ibpsa/project1-boptest/tree/master/testcases)
    ```shell
    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ TESTCASE=testcase1 docker-compose --file ~/project1-boptest/docker-compose.yml up
