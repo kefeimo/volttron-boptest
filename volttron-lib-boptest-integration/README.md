@@ -1,6 +1,6 @@
 # boptest-integration
 
-This python library is used for integrating boptest simulation into VOLTTRON platform. 
+This python library is used for integrating boptest simulation into VOLTTRON platform.
 
 BOPTEST is designed to facilitate
 the performance evaluation and benchmarking of building control strategies, which
@@ -49,19 +49,38 @@ pyenv global system 3.10
 
 The following recipe walks through the steps to install and run use case example.
 
+Note: For the ease of reproducibility, in this demo, we
+will git clone the [volttron-boptest](https://github.com/eclipse-volttron/volttron-boptest) repo to the `~/sandbox/`
+path. Feel free to modify the workflow as desired.
+
+   ```shell
+   kefei@ubuntu-22:~/sandbox$ git clone https://github.com/eclipse-volttron/volttron-boptest.git
+   Cloning into 'volttron-boptest'...
+   remote: Enumerating objects: 450, done.
+   remote: Counting objects: 100% (450/450), done.
+   remote: Compressing objects: 100% (242/242), done.
+   remote: Total 450 (delta 192), reused 424 (delta 170), pack-reused 0
+   Receiving objects: 100% (450/450), 3.66 MiB | 7.06 MiB/s, done.
+   Resolving deltas: 100% (192/192), done.
+   kefei@ubuntu-22:~/sandbox$ cd volttron-boptest/
+   kefei@ubuntu-22:~/sandbox/volttron-boptest$ 
+   ```
+
 1. Create and activate a virtual environment.
 
    It is recommended to use a virtual environment for installing library.
 
     ```shell
-    python -m venv env
-    source env/bin/activate
+    kefei@ubuntu-22:~/sandbox/volttron-boptest$ python -m venv env
+    kefei@ubuntu-22:~/sandbox/volttron-boptest$ source env/bin/activate
+    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$
     ```
 
 
 1. Install the "volttron-boptest-integration" library.
 
-   There are two options to install "volttron-boptest-integration". You can install this library using the version on PyPi or install
+   There are two options to install "volttron-boptest-integration". You can install this library using the version on
+   PyPi or install
    it from the source code (`git clone` might be required.)
 
     ```shell
@@ -70,6 +89,19 @@ The following recipe walks through the steps to install and run use case example
     
     # option 2: install from the source code (Note: `-e` option to use editable mode, useful for development.)
     pip install [-e] <path-to-the-source-code-root>/volttron-lib-boptest-integration/
+    ```
+   
+    ```shell
+    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ pip install volttron-lib-boptest-integration
+    Collecting volttron-lib-boptest-integration
+      Downloading volttron_lib_boptest_integration-0.1.1a0-py3-none-any.whl (20 kB)
+    Collecting pandas>0.0.0
+    ...
+   
+    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ pip list | grep volttron
+    volttron                         10.0.4rc1
+    volttron-lib-boptest-integration 0.1.1a0
+    ...
     ```
 
 # Basic Usage
@@ -124,16 +156,20 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
    ```shell
    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ TESTCASE=testcase1 docker-compose --file /tmp/project1-boptest/docker-compose.yml up --detach 
    Starting project1-boptest_boptest_1 ... done
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ docker container ls
+   CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS          PORTS                      NAMES
+   ddd0f2cc1f99   boptest_base   "/bin/sh -c 'python …"   23 hours ago   Up 12 seconds   127.0.0.1:5000->5000/tcp   project1-boptest_boptest_1
+
    ```
 
    Note: Use `docker-compose down` to shut down the service.
 
 1. Run example usecases.
-   
+
    There are several exmaple usecases available at [examples/](examples). In this demo,
-   we will run [testcase1.py](examples/tescase1.py). 
+   we will run [testcase1.py](examples/tescase1.py).
    ```shell
-   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ python <examples-path>/testcase1.py
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ python volttron-lib-boptest-integration/examples/testcase1.py
    INFO:root:=========== run_workflow
    INFO:root:
    TEST CASE INFORMATION

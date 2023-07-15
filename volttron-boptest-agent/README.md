@@ -52,6 +52,25 @@ pyenv global system 3.10
 
 The following recipe walks through the steps to install and demonstrate basic usage of "volttron-boptest" agent.
 
+The following recipe walks through the steps to install and run use case example.
+
+Note: For the ease of reproducibility, in this demo, we
+will git clone the [volttron-boptest](https://github.com/eclipse-volttron/volttron-boptest) repo to the `~/sandbox/`
+path. Feel free to modify the workflow as desired.
+
+   ```shell
+   kefei@ubuntu-22:~/sandbox$ git clone https://github.com/eclipse-volttron/volttron-boptest.git
+   Cloning into 'volttron-boptest'...
+   remote: Enumerating objects: 450, done.
+   remote: Counting objects: 100% (450/450), done.
+   remote: Compressing objects: 100% (242/242), done.
+   remote: Total 450 (delta 192), reused 424 (delta 170), pack-reused 0
+   Receiving objects: 100% (450/450), 3.66 MiB | 7.06 MiB/s, done.
+   Resolving deltas: 100% (192/192), done.
+   kefei@ubuntu-22:~/sandbox$ cd volttron-boptest/
+   kefei@ubuntu-22:~/sandbox/volttron-boptest$ 
+   ```
+
 1. Create and activate a virtual environment.
 
    It is recommended to use a virtual environment for installing volttron.
@@ -130,6 +149,9 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
    ```shell
    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ TESTCASE=testcase1 docker-compose --file /tmp/project1-boptest/docker-compose.yml up --detach 
    Starting project1-boptest_boptest_1 ... done
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ docker container ls
+   CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS          PORTS                      NAMES
+   ddd0f2cc1f99   boptest_base   "/bin/sh -c 'python …"   23 hours ago   Up 12 seconds   127.0.0.1:5000->5000/tcp   project1-boptest_boptest_1
    ```
 
    Note: Use `docker-compose down` to shut down the service.
@@ -155,50 +177,19 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
 
 1. Install and start the "volttron-boptest" agent.
 
-   Prepare the default config files:
-
-    ```shell
-    # Create config file place holders
-    mkdir config
-    touch config/boptest_integration-agent-config.json
-    ```
-
-   Edit the `testcase1_config.yml` as follows:
-    ```yaml
-    {
-     "testcase_name": "testcase1",
-     "initialize":  # for GET/initialize
-     {
-       "start_time": 0,
-       "warmup_period": 0
-     },
-     "scenario": null,
-     "step": 300,
-     "length": 86400,
-   
-     "controller":
-     {
-       "type": "pid",  # currently support "pid", "sup", pidTwoZones"
-       "u":
-       {
-         "oveAct_u": 0,
-         "oveAct_activate": 1
-       }
-     }
-   
-   }
-    ```
-
-   Please see [examples/](examples) for other example config files.
+   We will use the [testcase1.config](examples/testcase1.config) as the agent config for this demo. Please
+   see [examples/](examples) for other example config files.
 
    Use `vctl install` command to register to the volttron home path.
    Note: for demo purposes and reproducibility, we assign vip-identity as "volttron_boptest_agent", but you can choose
    any other valid agent identity as desired.
 
     ```shell
-    vctl install volttron-boptest --agent-config <path-to-agent-config> \
+    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ vctl install volttron-boptest \
+   --agent-config volttron-boptest-agent/examples/testcase1.config \
    --vip-identity volttron_boptest_agent \
    --start
+   Agent a0fd6f5c-3751-4312-9f59-ca541b8aac4e installed and started [4980]
     ```
 
    Observe Data
