@@ -111,14 +111,16 @@ server.
 
 ### Setup the boptest simulation server locally.
 
+In order to demonstrate the basic usage of volttron-boptest-agent, we need to setup the boptest simulation server.
+
 (Please see more details about boptest quick-start
 at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest#quick-start-to-deploy-a-test-case))
 
 1. Download [IBPSA Project 1 - BOPTEST](https://github.com/ibpsa/project1-boptest) repository to <boptest_repo>. For
-   demo purpose, let boptest_repo be `/tmp/project1-boptest`.
+   demo purpose, let boptest_repo be `~/project1-boptest`.
 
    ```shell
-   git clone https://github.com/ibpsa/project1-boptest /tmp/project1-boptest
+   git clone https://github.com/ibpsa/project1-boptest ~/project1-boptest
    ```
 
 1. Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
@@ -137,10 +139,10 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
 
    The basic command to start a test case is by using `TESTCASE=<testcase_name> docker-compose up`.
 
-   For demo purpose, we will build and deploy testcase1, for avialable testcases please
+   For demo purpose, we will build and deploy testcase1, for available testcases please
    see [testcases/](https://github.com/ibpsa/project1-boptest/tree/master/testcases)
    ```shell
-   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ TESTCASE=testcase1 docker-compose --file /tmp/project1-boptest/docker-compose.yml up
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ TESTCASE=testcase1 docker-compose --file ~/project1-boptest/docker-compose.yml up
    Creating network "boptest-net" with the default driver
    Creating project1-boptest_boptest_1 ... done
    Attaching to project1-boptest_boptest_1
@@ -154,15 +156,20 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
    ```
    Or use detach mode
    ```shell
-   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ TESTCASE=testcase1 docker-compose --file /tmp/project1-boptest/docker-compose.yml up --detach 
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ TESTCASE=testcase1 docker-compose --file ~/project1-boptest/docker-compose.yml up --detach 
    Starting project1-boptest_boptest_1 ... done
    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ docker container ls
    CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS          PORTS                      NAMES
    ddd0f2cc1f99   boptest_base   "/bin/sh -c 'python …"   23 hours ago   Up 12 seconds   127.0.0.1:5000->5000/tcp   project1-boptest_boptest_1
-
    ```
 
    Note: Use `docker-compose down` to shut down the service.
+
+   Verify boptest simulation server is running properly:
+   ```shell
+   (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ curl http://127.0.0.1:5000/name
+   {"message":"Queried the name of the test case successfully.","payload":{"name":"testcase1"},"status":200}
+   ```
 
 1. Run example usecases.
 
