@@ -115,7 +115,7 @@ jobs:
           # This is needed, because the poetry publish will fail at the top level of the project
           # so ./scripts/run_on_each.sh fails for that.
           echo "POETRY_PUBLISH_OPTIONS=''" >> $GITHUB_ENV
-          cd volttron-boptest-lib-integration 
+          cd volttron-lib-boptest-integration 
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }} 
           poetry publish
 
@@ -136,7 +136,7 @@ jobs:
           # This is needed, because the poetry publish will fail at the top level of the project
           # so ./scripts/run_on_each.sh fails for that.
           echo "POETRY_PUBLISH_OPTIONS='--repository testpypi'" >> $GITHUB_ENV
-          cd volttron-boptest-lib-integration
+          cd volttron-lib-boptest-integration
           poetry config pypi-token.testpypi ${{ secrets.PYPI_TEST_TOKEN }} 
           poetry publish
 
