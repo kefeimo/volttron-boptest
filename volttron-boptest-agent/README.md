@@ -116,6 +116,10 @@ at [Quick-Start to Deploy a Test Case](https://github.com/ibpsa/project1-boptest
 
 1. Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
 
+   Note: this demo run docker as a non-root user, you can
+   follow [Linux post-installation steps for Docker Engine](https://docs.docker.com/engine/install/linux-postinstall/)
+   to achieve similar setup.
+
    (Optional) Verify with `docker-compose version` to verify the installation
    ```shell
    (env) kefei@ubuntu-22:~/sandbox/volttron-boptest$ docker-compose version
