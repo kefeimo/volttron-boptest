@@ -49,11 +49,11 @@ def test_volttron_home_fixture(volttron_home):
     print(volttron_home)
 
 
-def test_testing_file_path():
-    parent_path = os.getcwd()
-    boptest_agent_config_path = os.path.join(parent_path, "testcase1.config")
-    # print(boptest_agent_config_path)
-    logging_logger.info(f"test_testing_file_path {boptest_agent_config_path}")
+# def test_testing_file_path():
+#     parent_path = os.getcwd()
+#     boptest_agent_config_path = os.path.join(parent_path, "testcase1.config")
+#     # print(boptest_agent_config_path)
+#     logging_logger.info(f"test_testing_file_path {boptest_agent_config_path}")
 
 
 def test_volttron_instance_fixture(volttron_instance):
@@ -87,7 +87,7 @@ def boptest_agent(volttron_instance) -> dict:
     # TODO: improve the following hacky path resolver
     parent_path = pathlib.Path(__file__)
     boptest_agent_package_path = pathlib.Path(parent_path).parent.parent
-    boptest_agent_config_path = str(os.path.join(parent_path, "testcase1.config"))
+    # boptest_agent_config_path = str(os.path.join(parent_path, "testcase1.config"))
     config = {
         "testcase_name": "testcase1",
         "initialize":  # for GET/initialize
