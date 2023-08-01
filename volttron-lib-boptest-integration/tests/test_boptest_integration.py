@@ -1,6 +1,8 @@
 """
-Note: in order to run this test suit, a local boptest simulation server needs to be running
-i.e., TESTCASE=testcase1 docker-compose up
+Note: in order to run this test suit,
+    a local boptest simulation server needs to be running (including for .github/workflows)
+Note: the TESTCASE environment variable needs to be defined
+    i.e., TESTCASE=testcase1 docker-compose up
 """
 
 import pytest
@@ -26,7 +28,7 @@ class TestBopTestSimIntegrationLocal:
 
     def test_put_initialize(self):
         boptest_sim = BopTestSimIntegrationLocal()
-        res = boptest_sim.put_initialize(start_time=31*24*3600, warmup_period=7*24*3600)
+        res = boptest_sim.put_initialize(start_time=31 * 24 * 3600, warmup_period=7 * 24 * 3600)
         print(res)
         assert res
 
@@ -91,7 +93,7 @@ class TestBopTestSimIntegrationLocal:
 
         try:
             boptest_sim = BopTestSimIntegrationLocal()
-            res = boptest_sim.post_advance(data={'oveHeaPumY_u':0.5, 'oveHeaPumY_activate': 1})
+            res = boptest_sim.post_advance(data={'oveHeaPumY_u': 0.5, 'oveHeaPumY_activate': 1})
             print(res)
             assert res
         except Exception as e:
@@ -109,7 +111,3 @@ class TestBopTestSimIntegrationLocal:
         res = boptest_sim.get_kpi()
         print(res)
         assert res
-
-
-
-

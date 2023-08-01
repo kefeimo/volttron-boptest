@@ -90,8 +90,7 @@ jobs:
 #          TESTCASE: "testcase1"
         run: |
           echo === Running test cases ===
-          docker-compose -f  ./project1-boptest/docker-compose.yml  \
-          up -d
+          docker-compose -f  ./project1-boptest/docker-compose.yml up -d
           echo === Completed test cases ===
 
       - name: validate docker-compose up
