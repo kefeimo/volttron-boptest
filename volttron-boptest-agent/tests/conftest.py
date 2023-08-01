@@ -22,11 +22,27 @@
 # ===----------------------------------------------------------------------===
 # }}}
 
-"""Configuration for the pytest test suite."""
+"""Configuration for the pytest test suite (for agents)."""
 
 import sys
+import os
 from pathlib import Path
 
+# # to make sure src/ is included in the path for pytest
+# if "src" not in sys.path:
+#     sys.path.insert(0, "src")
+#
+# if __name__ == "__main__":
+#     print("something")
+#     print(sys.path)
+
 p = Path(__file__)
-if p.parent.parent.parent.resolve().as_posix() not in sys.path:
-    sys.path.insert(0, p.parent.parent.resolve().as_posix())
+if p.parent.parent.resolve().as_posix() not in sys.path:
+    src_path = os.path.join(p.parent.parent.resolve().as_posix(), "src")
+    sys.path.insert(0, src_path)
+
+# if __name__ == "__main__":
+#     print(sys.path)
+#     print(p.parent.parent.parent)
+#     print(p.parent.parent)
+

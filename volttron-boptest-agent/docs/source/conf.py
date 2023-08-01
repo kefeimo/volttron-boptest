@@ -30,7 +30,7 @@ import yaml
 
 # -- Project information
 
-project = 'VOLTTRON DNP3 Outstation Agent'
+project = 'VOLTTRON Boptest Agent'
 copyright = '2022, Pacific Northwest National Lab'
 author = 'Pacific Northwest National Lab'
 

@@ -1,10 +1,9 @@
 """
-A demo to test dnp3-driver get_point method using rpc call.
+A demo to test using rpc call.
 Pre-requisite:
-- install platform-driver
-- configure dnp3-driver
-- a dnp3 outstation/server is up and running
-- platform-driver is up and running
+volttron
+
+Note: for volttron-core 10.0.4rc1 (RuntimeError: VIP loop ended prematurely)
 """
 import os
 import random

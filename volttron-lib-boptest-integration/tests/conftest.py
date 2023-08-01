@@ -22,7 +22,7 @@
 # ===----------------------------------------------------------------------===
 # }}}
 
-"""Configuration for the pytest test suite."""
+"""Configuration for the pytest test suits (make sure /src is resolvable)."""
 
 import sys
 from pathlib import Path

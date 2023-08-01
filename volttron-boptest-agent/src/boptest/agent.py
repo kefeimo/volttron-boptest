@@ -74,7 +74,7 @@ __version__ = "1.0"
 
 class BopTestAgent(Agent):
     """This is class is a subclass of the Volttron Agent;
-        This agent is an implementation of a DNP3 outstation;
+        This agent is an implementation of a Boptest outstation;
         The agent overrides @Core.receiver methods to modify agent life cycle behavior;
         The agent exposes @RPC.export as public interface utilizing RPC calls.
     """
