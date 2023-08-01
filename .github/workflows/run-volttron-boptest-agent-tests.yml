@@ -110,3 +110,4 @@ jobs:
           cd volttron-boptest-agent
           poetry install --no-interaction
 #          poetry run pytest ./tests/*
+          poetry run pytest
