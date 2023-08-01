@@ -61,10 +61,53 @@ jobs:
           installer-parallel: true
 
       #----------------------------------------------
+      # Setup boptest server at local
+      #----------------------------------------------
+      - name: Git clone Boptest Repo
+        run:
+          git clone https://github.com/ibpsa/project1-boptest.git
+
+#      - name: validate repo
+#        run:
+#          ls -la project1-boptest
+
+      - name: install docker-compose
+        run: |
+          sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+#      - name: install docker-compose
+#        uses: ndeloof/install-compose-action@v0.0.1
+#        with:
+#          version: v1.29.2 # defaults to 'latest'
+#          legacy: true    # will also install in PATH as `docker-compose`
+
+      - name: run docker-compose repo
+#      - uses: actions/checkout@v3
+#        uses: isbang/compose-action@v1.5.0
+#        with:
+#          compose-file: "./project1-boptest/docker-compose.yml"
+#        env:
+#          TESTCASE: "testcase1"
+        run: |
+          echo === Running test cases ===
+          docker-compose -f  ./project1-boptest/docker-compose.yml  \
+          up -d
+          echo === Completed test cases ===
+
+      - name: validate docker-compose up
+        run: |
+          sleep 5
+          docker container ls
+          echo === validating docker-compose up ===
+          curl http://127.0.0.1:5000/measurements
+          curl http://127.0.0.1:5000/name
+          echo === Completed docker-compose up validation===
+
+      #----------------------------------------------
       # install your root project, and run tests.
       #----------------------------------------------
       - name: Install library and run tests
         run: |
           cd volttron-lib-boptest-integration
           poetry install --no-interaction
-          poetry run pytest ./tests/test_submonorepo.py
+          poetry run pytest ./tests/*

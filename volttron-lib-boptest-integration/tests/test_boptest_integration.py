@@ -1,5 +1,10 @@
+"""
+Note: in order to run this test suit, a local boptest simulation server needs to be running
+i.e., TESTCASE=testcase1 docker-compose up
+"""
+
 import pytest
-from integrations.boptest_integration import BopTestSimIntegrationLocal
+from boptest_integration.boptest_integration import BopTestSimIntegrationLocal
 
 
 # @pytest.mark.skip(reason="for local testing. Assuming a local testcase is running")
@@ -95,7 +100,7 @@ class TestBopTestSimIntegrationLocal:
     def test_get_results(self):
         boptest_sim = BopTestSimIntegrationLocal()
         measures = boptest_sim.get_measurements()
-        res = boptest_sim.get_results(point_names=[measures[0]])
+        res = boptest_sim.put_results(point_names=[measures[0]])
         print(res)
         assert res
 
