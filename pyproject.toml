@@ -28,7 +28,7 @@ bump_message = "bump: $current_version → $new_version"
 python = "~3.10"
 
 [tool.poetry.dev-dependencies]
-ipython = "^7.29.0"
+ipython = ">8.0.0"
 mypy = "0.910"
 flake8 = "4.0.1"
 dunamai = "^1.7.0"
