@@ -17,7 +17,7 @@ ignore_missing_imports = true
 
 [tool.poetry]
 name = "volttron-boptest"
-version = "0.0.1"
+version = "0.0.2"
 description = "A Volttron agent that runs boptest simulation."
 authors = ["Kefei Mo <kefei.mo@pnnl.gov>"]
 license = "Apache-2.0"

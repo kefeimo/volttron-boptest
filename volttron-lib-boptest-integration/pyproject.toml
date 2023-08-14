@@ -17,7 +17,7 @@ ignore_missing_imports = true
 
 [tool.poetry]
 name = "volttron-lib-boptest-integration"
-version = "0.0.1"
+version = "0.0.2"
 description = "A Volttron library for boptest simulation integration."
 authors = ["Kefei Mo <kefei.mo@pnnl.gov>"]
 license = "Apache-2.0"
@@ -25,7 +25,7 @@ maintainers = ["Volttron Team <volttron@pnnl.gov>"]
 readme = "README.md"
 homepage = "https://github.com/eclipse-volttron/volttron-boptest"
 repository = "https://github.com/eclipse-volttron/volttron-boptest"
-packages = [{ include = "boptest_integration", from = "src" }]
+packages = [{ include = "boptest_integration/*", from = "src" }]
 keywords = ["volttron", "boptest", "simulation", "integration"]
 classifiers = [
     "Development Status :: 3 - Alpha",
