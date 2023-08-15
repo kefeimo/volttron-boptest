@@ -44,6 +44,7 @@ def volttron_home():
     return volttron_home
 
 
+@pytest.mark.skip(reason="for debugging purpose only")
 def test_volttron_home_fixture(volttron_home):
     assert volttron_home
     print(volttron_home)
@@ -56,6 +57,7 @@ def test_volttron_home_fixture(volttron_home):
 #     logging_logger.info(f"test_testing_file_path {boptest_agent_config_path}")
 
 
+@pytest.mark.skip(reason="for debugging purpose only")
 def test_volttron_instance_fixture(volttron_instance):
     print(volttron_instance)
     logging_logger.info(f"=========== volttron_instance_new.volttron_home: {volttron_instance.volttron_home}")
@@ -71,6 +73,7 @@ def vip_agent(volttron_instance):
     return a
 
 
+@pytest.mark.skip(reason="for debugging purpose only")
 def test_vip_agent_fixture(vip_agent):
     print(vip_agent)
     logging_logger.info(f"=========== vip_agent: {vip_agent}")
