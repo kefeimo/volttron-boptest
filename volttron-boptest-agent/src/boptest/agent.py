@@ -57,6 +57,7 @@ logger.setLevel(logging.INFO)
 
 setup_logging()
 _log = logging.getLogger(__name__)
+_log.setLevel(logging.INFO)
 __version__ = "1.0"
 
 
@@ -94,6 +95,7 @@ class BopTestAgent(Agent):
 
         self.bp_sim = BopTestSimIntegrationLocal()
         self.config: dict = self._parse_config(config_path)
+        self.interface = Interface(config=self.config)
         # TODO: design config template
         # TODO: create config data class (with validation)
         logging.debug(f"================ config: {self.config}")
@@ -106,21 +108,9 @@ class BopTestAgent(Agent):
 
         self._is_onstart_completed = False
 
-        self.poll_freq = 3  # the frequency to poll simulation result
-
-    # @staticmethod
-    # def boptest_up(testcase: str, docker_compose_file_path: str, is_verbose: bool = True) -> str:
-    #     """
-    #     EXAMPLE
-    #     boptest_up(testcase="testcase1", docker_compose_file_path="/home/kefei/project/project1-boptest_integration/docker-compose.yml")
-    #     """
-    #     if is_verbose:
-    #         verbose = "--verbose"
-    #     else:
-    #         verbose = ""
-    #     cmd = f"TESTCASE={testcase} docker-compose {verbose} -f {docker_compose_file_path} up -d"
-    #     res = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
-    #     return res.stdout.decode("utf-8")
+        self.cosim_freq = 3  # the frequency of co-simulation, e.g., freq of publish
+        self.cosim_types = None
+        self._first_time_run_periodic = True
 
     @Core.receiver("onstart")
     def onstart(self, sender, **kwargs):
@@ -132,17 +122,18 @@ class BopTestAgent(Agent):
         Usually not needed if using the configuration store.
         """
 
-
-
-        if True:  # if not using cosimulation
-            _ = self._publish_final_output()
+        if self.config.get("co-simulate"):  # using cosimulation
+            self.cosim_freq = self.config.get("co-simulate").get("freq")
+            self.cosim_types = self.config.get("co-simulate").get("types")
+            rt_periodic = self.core.periodic(self.cosim_freq,
+                                             self._run_periodic,
+                                             wait=0)
             # logging.info(f"======== _ {_} ======")
         else:
             # periodic testing
-            self.rt_periodic = self.core.periodic(self.poll_freq,
-                                                  self._run_periodic,
-                                                  wait=0)
+            _ = self._publish_final_output()
 
+        self._is_onstart_completed = True
         logging.info("======== onstart completed.======")
 
         # Example publish to pubsub
@@ -155,16 +146,17 @@ class BopTestAgent(Agent):
 
     def _publish_final_output(self):
         """
-        retrieve and publish the final (i.e., end of the simulation) output (results/measurements, kpis, predicts.)
+        retrieve and publish the final (i.e., end of the simulation) output (results/measurements, kpis, forecasts.)
         """
-        interface = Interface(config=self.config)
+        interface = self.interface
         logging.info("=========== run_workflow NEW 2++++++++++++++++++")
 
         interface.populate_testcase_info()
         interface.config_custom_kpi()
         interface.initialize_testcase()
         kpi, result, forecasts, custom_kpi_result = interface.advance_simulation(is_loop=True)
-        interface.populate_simulation_result()
+        interface.populate_output_kpis()
+        interface.populate_output_measurements()
 
         logger.info("======== run workflow completed.======")
         print(f"======= kpi {kpi}")
@@ -181,10 +173,9 @@ class BopTestAgent(Agent):
         # Store the result data
         self._results = result
         self._kpi = kpi
-        # self._custom_kpi_result = custom_kpi_result
+        self._custom_kpi_result = custom_kpi_result
         self._forecasts = forecasts
 
-        self._is_onstart_completed = True
         return result, kpi, forecasts
 
     # @Core.schedule(periodic(5))
@@ -195,7 +186,45 @@ class BopTestAgent(Agent):
         Sends an alert if any topics are missing.
         """
         logging.info((f"************** {datetime.datetime.now()} ************** "))
-        # self.run_workflow_2()
+        interface = self.interface
+        # logging.info("=========== run_workflow NEW 2++++++++++++++++++")
+
+        if self._first_time_run_periodic:  # init only one time
+            interface.populate_testcase_info()
+            interface.config_custom_kpi()
+            interface.initialize_testcase()
+        # advance one step (is_loop=False)
+        kpi, result, forecasts, custom_kpi_result = interface.advance_simulation(is_loop=False)
+        interface.populate_output_kpis()
+        interface.populate_output_measurements()
+
+        # logger.info("======== run workflow completed.======")
+        # print(f"======= kpi {kpi}")
+
+        # TODO: refactor topic value to config
+        # publish outcome to message bus, depending on co_simulate_outcome_types,
+        # support ["measurement", "kpi", "forecast", "custom_kpi"]
+        default_prefix = "PNNL/BUILDING/UNIT/"
+        co_simulate_outcome_types = self.config.get("co-simulate").get("types")
+        if "kpi" in co_simulate_outcome_types:
+            self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "kpi", message=[kpi])
+        if "measurement" in co_simulate_outcome_types:
+            self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "measurement", message=[result])
+        if "forecast" in co_simulate_outcome_types:
+            self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "forecast", message=[forecasts])
+        if "custom_kpi" in co_simulate_outcome_types:
+            self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "custom_kpi", message=[custom_kpi_result])
+        # self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "result", message=str(res))
+        # TODO: publish custom_kpi_result forecasts
+
+        # Store the result data
+        self._results = result
+        self._kpi = kpi
+        self._custom_kpi_result = custom_kpi_result
+        self._forecasts = forecasts
+        self._first_time_run_periodic = False
+
+        return result, kpi, forecasts, custom_kpi_result
 
     def _parse_config(self, config_path: str) -> Dict:
         """Parses the agent's configuration file.

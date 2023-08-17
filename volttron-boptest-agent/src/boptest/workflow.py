@@ -160,6 +160,7 @@ class Interface:
             #     print('KPI:\t{0}:\t{1}'.format(kpi.name, round(custom_kpi_value, 2)))  # Print custom KPI value
             # custom_kpi_result['time'].append(y['time'])  # Track custom KPI calculation time
             # If controller needs a forecast, get the forecast data and provide the forecast to the controller
+            print(f"*********** controller {controller}")
             if controller.use_forecast:
                 # Retrieve forecast from restful API
                 forecast_parameters = controller.get_forecast_parameters()
@@ -257,7 +258,7 @@ class Interface:
 
         return kpi, results, forecasts, custom_kpi_result
 
-    def populate_simulation_result(self):
+    def populate_output_kpis(self):
         # VIEW RESULTS
         # -------------------------------------------------------------------------
         # Report KPIs
@@ -286,6 +287,37 @@ class Interface:
                 unit = None
             logging.info('{0}: {1} {2}'.format(key, kpi[key], unit))
 
+    def populate_output_measurements(self):
+        # VIEW RESULTS
+        # -------------------------------------------------------------------------
+        # Report KPIs
+        measurement_keys = self.bp_sim.get_measurements()
+        measurements = self.bp_sim.put_results(measurement_keys)["payload"]
+        logger.info('\nmeasurements RESULTS \n-----------')
+        logging.info(measurements)
+        # for key in measurements.keys():
+        #     if key == 'ener_tot':
+        #         unit = 'kWh/m$^2$'
+        #     elif key == 'pele_tot':
+        #         unit = 'kW/m$^2$'
+        #     elif key == 'pgas_tot':
+        #         unit = 'kW/m$^2$'
+        #     elif key == 'pdih_tot':
+        #         unit = 'kW/m$^2$'
+        #     elif key == 'tdis_tot':
+        #         unit = 'Kh/zone'
+        #     elif key == 'idis_tot':
+        #         unit = 'ppmh/zone'
+        #     elif key == 'cost_tot':
+        #         unit = 'Euro or \$/m$^2$'
+        #     elif key == 'emis_tot':
+        #         unit = 'KgCO2/m$^2$'
+        #     elif key == 'time_rat':
+        #         unit = 's/s'
+        #     else:
+        #         unit = None
+        #     logging.info('{0}: {1} {2}'.format(key, kpi[key], unit))
+
     def run_workflow(self):
         """
         run workflow
@@ -297,7 +329,7 @@ class Interface:
         self.config_custom_kpi()
         self.initialize_testcase()
         kpi, result, forecasts, custom_kpi_result = self.advance_simulation(is_loop=True)
-        self.populate_simulation_result()
+        self.populate_output_kpis()
 
         logger.info("======== run workflow completed.======")
 
