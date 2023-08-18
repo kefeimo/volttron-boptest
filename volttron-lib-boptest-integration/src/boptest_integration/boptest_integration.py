@@ -113,6 +113,8 @@ class BopTestSimIntegrationLocal:
         res = requests.put('{0}/scenario'.format(self.url),
                            data={'time_period': time_period,
                                  'electricity_price': electricity_price}).json()
+
+        print(res)
         # update time info
         self.has_initialized = True
         start_time = res["payload"]["time_period"]["time"]

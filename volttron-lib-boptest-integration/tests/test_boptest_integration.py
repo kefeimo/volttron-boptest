@@ -7,12 +7,14 @@ Note: the TESTCASE environment variable needs to be defined
 
 import pytest
 from boptest_integration.boptest_integration import BopTestSimIntegrationLocal
+import random
 
 
 # @pytest.mark.skip(reason="for local testing. Assuming a local testcase is running")
 class TestBopTestSimIntegrationLocal:
     """
     Testing BopTestSimIntegrationLocal
+    Note: assume using testcase1
     """
 
     def test_init(self):
@@ -25,6 +27,7 @@ class TestBopTestSimIntegrationLocal:
         res = boptest_sim.get_name()
         print(res)
         assert res
+        assert res == "testcase1"
 
     def test_put_initialize(self):
         boptest_sim = BopTestSimIntegrationLocal()
@@ -33,6 +36,9 @@ class TestBopTestSimIntegrationLocal:
         assert res
 
     def test_retrieve_time_info(self):
+        """
+        test init (for PUT/INITIALIZE)
+        """
         boptest_sim = BopTestSimIntegrationLocal()
         res = boptest_sim.retrieve_time_info()
         print(res)
@@ -43,9 +49,69 @@ class TestBopTestSimIntegrationLocal:
         assert res_2
         assert res != res_2
 
+    def test_retrieve_time_info_init_scenario(self):
+        """
+        test init for PUT/SCENARIO
+        """
+        boptest_sim = BopTestSimIntegrationLocal()
+        res = boptest_sim.retrieve_time_info()
+        print(res)
+        # Note: the scenario argument `time_period` is specific to testcase1
+        scenario = {"time_period": "test_day", "electricity_price": "dynamic"}
+        res_1 = boptest_sim.put_scenario(**scenario)
+        res_2 = boptest_sim.retrieve_time_info()
+        print(res_2)
+        assert res
+        assert res_2
+        assert res != res_2
+
+    def test_retrieve_time_info_advance(self):
+        """
+        test after advance (for PUT/INITIALIZE)
+        """
+        boptest_sim = BopTestSimIntegrationLocal()
+        res = boptest_sim.retrieve_time_info()
+        print(res)
+        res_1 = boptest_sim.put_initialize(start_time=31 * 24 * 3600, warmup_period=7 * 24 * 3600)
+        res_time_info = boptest_sim.retrieve_time_info()
+        print(res_time_info)
+        # advance 1 step
+        step = boptest_sim.get_step()
+        print(step)
+        _ = boptest_sim.post_advance()
+        res_time_info_2 = boptest_sim.retrieve_time_info()
+        print(res_time_info_2)
+
+        assert res_time_info["current_time"] + step == res_time_info_2["current_time"]
+
+    def test_retrieve_time_info_advance_scenario(self):
+        """
+        test after advance (for PUT/SCENARIO)
+        """
+        boptest_sim = BopTestSimIntegrationLocal()
+        res = boptest_sim.retrieve_time_info()
+        print(res)
+        # Note: the scenario argument `time_period` is specific to testcase1
+        scenario = {"time_period": "test_day", "electricity_price": "dynamic"}
+        res_1 = boptest_sim.put_scenario(**scenario)
+        res_time_info = boptest_sim.retrieve_time_info()
+        print(res_time_info)
+        # advance n (1-10) random steps
+        step = boptest_sim.get_step()
+        # print(step)
+        n = random.randint(1, 10)
+        print(f"advanced n: {n} steps with length {step}, total time elapsed n * step = {n * step}.")
+        for _ in range(n):
+            _ = boptest_sim.post_advance()
+        res_time_info_2 = boptest_sim.retrieve_time_info()
+        print(res_time_info_2)
+
+        assert res_time_info["current_time"] + step * n == res_time_info_2["current_time"]
+
     def test_put_scenario(self):
         boptest_sim = BopTestSimIntegrationLocal()
-        res = boptest_sim.put_scenario(time_period="peak_heat_day", electricity_price="dynamic")
+        # Note: the scenario argument `time_period` is specific to testcase1
+        res = boptest_sim.put_scenario(time_period="test_day", electricity_price="dynamic")
         print(res)
         assert res
 
@@ -93,7 +159,9 @@ class TestBopTestSimIntegrationLocal:
 
         try:
             boptest_sim = BopTestSimIntegrationLocal()
-            res = boptest_sim.post_advance(data={'oveHeaPumY_u': 0.5, 'oveHeaPumY_activate': 1})
+            # Note: the input data is only guaranteed to work for testcase1
+            u = {'oveHeaPumY_u': 0.5, 'oveHeaPumY_activate': 1}
+            res = boptest_sim.post_advance(data=u)
             print(res)
             assert res
         except Exception as e:
