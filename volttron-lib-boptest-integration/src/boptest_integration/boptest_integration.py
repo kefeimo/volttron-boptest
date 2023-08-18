@@ -80,15 +80,13 @@ class BopTestSimIntegrationLocal:
         self.start_time = start_time
         self.current_time = start_time
         self.warmup_period = warmup_period
+        res = requests.put('{0}/initialize'.format(self.url),
+                           data={'start_time': start_time,
+                                 'warmup_period': warmup_period}).json()
         if payload_only:
-            res = requests.put('{0}/initialize'.format(self.url),
-                               data={'start_time': start_time,
-                                     'warmup_period': warmup_period}).json()['payload']
+            return res['payload']
         else:
-            res = requests.put('{0}/initialize'.format(self.url),
-                               data={'start_time': start_time,
-                                     'warmup_period': warmup_period}).json()
-        return res
+            return res
 
     def retrieve_time_info(self) -> dict:
         """
@@ -125,17 +123,10 @@ class BopTestSimIntegrationLocal:
         warmup_period = sim_ts[-1] - sim_ts[0]
         self.warmup_period = warmup_period
 
-
         if payload_only:
-            res = requests.put('{0}/scenario'.format(self.url),
-                               data={'time_period': time_period,
-                                     'electricity_price': electricity_price}).json()['payload']
+            return res["payload"]
         else:
-            res = requests.put('{0}/scenario'.format(self.url),
-                               data={'time_period': time_period,
-                                     'electricity_price': electricity_price}).json()
-
-        return res
+            return res
 
     def get_scenario(self):
         """
@@ -188,11 +179,11 @@ class BopTestSimIntegrationLocal:
         get_step()
         >> 3600.0
         """
+        res = requests.get('{0}/step'.format(self.url)).json()
         if payload_only:
-            res = requests.get('{0}/step'.format(self.url)).json()["payload"]
+            return res["payload"]
         else:
-            res = requests.get('{0}/step'.format(self.url)).json()
-        return res
+            return res
 
     def put_step(self, step: float) -> float:
         """
@@ -250,11 +241,11 @@ class BopTestSimIntegrationLocal:
         >> {'message': 'Queried KPIs successfully.', 'payload': {'cost_tot': 0.006980178107630843,
         >> 'emis_tot': 0.004598381633034914, 'ener_tot': 0.02 ...
         """
+        res = requests.get('{0}/kpi'.format(self.url)).json()
         if payload_only:
-            res = requests.get('{0}/kpi'.format(self.url)).json()["payload"]
+            return res["payload"]
         else:
-            res = requests.get('{0}/kpi'.format(self.url)).json()
-        return res
+            return res
 
     def get_forecast_points(self, keys_only=True):
         """
@@ -300,11 +291,11 @@ class BopTestSimIntegrationLocal:
             "horizon": horizon,
             "interval": interval
         }
+        res = requests.put('{0}/forecast'.format(self.url), json=forecast_parameters).json()
         if payload_only:
-            res = requests.put('{0}/forecast'.format(self.url), json=forecast_parameters).json()['payload']
+            return res['payload']
         else:
-            res = requests.put('{0}/forecast'.format(self.url), json=forecast_parameters).json()
-        return res
+            return res
 
 
 class BopTestSimIntegration:
