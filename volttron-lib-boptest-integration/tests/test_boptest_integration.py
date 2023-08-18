@@ -167,7 +167,7 @@ class TestBopTestSimIntegrationLocal:
         except Exception as e:
             print(e)
 
-    def test_get_results(self):
+    def test_put_results(self):
         boptest_sim = BopTestSimIntegrationLocal()
         measures = boptest_sim.get_measurements()
         res = boptest_sim.put_results(point_names=[measures[0]])
@@ -179,3 +179,13 @@ class TestBopTestSimIntegrationLocal:
         res = boptest_sim.get_kpi()
         print(res)
         assert res
+
+    def test_retrieve_results_current_time(self):
+        boptest_sim = BopTestSimIntegrationLocal()
+        # res_1 = boptest_sim.put_initialize(start_time=31 * 24 * 3600, warmup_period=7 * 24 * 3600)
+        res = boptest_sim.retrieve_current_results()
+        print(res)
+        res_time_info = boptest_sim.retrieve_time_info()
+        print(res_time_info)
+        assert res["time"] == res_time_info["current_time"]
+

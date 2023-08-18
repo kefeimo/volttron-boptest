@@ -57,7 +57,8 @@ class BopTestSimIntegrationLocal:
             self.url = url
         self.start_time: float = start_time
         self.warmup_period: float = warmup_period
-        self.current_time: float = None
+        # self.current_time: float = None
+        self.current_time: float = self.retrieve_current_time()
         self.is_scenario = None
         self.has_initialized = False  # status flag when using either self.put_initialize or self.put_scenario.
 
@@ -67,6 +68,12 @@ class BopTestSimIntegrationLocal:
         """
         res = requests.get('{0}/name'.format(self.url)).json()['payload']
         return res.get('name')
+
+    def retrieve_current_time(self) -> float:
+        """
+        retrieve current time from PUT/RESULTS last timestamp
+        """
+        return self.put_results([self.get_measurements()[0]])["time"][-1]
 
     def put_initialize(self, start_time: float, warmup_period: float, payload_only=True) -> dict:
         """
@@ -119,7 +126,7 @@ class BopTestSimIntegrationLocal:
         self.start_time = start_time
         self.current_time = start_time
         # note: warmup_period is not directly accessible, calculated from PUT/RESULTS instead.
-        sim_ts = self.put_results(point_names=[self.get_measurements()[0]])["payload"]["time"]
+        sim_ts = self.put_results(point_names=[self.get_measurements()[0]])["time"]
         warmup_period = sim_ts[-1] - sim_ts[0]
         self.warmup_period = warmup_period
 
@@ -216,7 +223,8 @@ class BopTestSimIntegrationLocal:
             print(f"===== res {requests.post('{0}/advance'.format(self.url), data=data).json()}")
         return res
 
-    def put_results(self, point_names: list, start_time: float = -np.inf, final_time: float = np.inf):
+    def put_results(self, point_names: list, start_time: float = -np.inf, final_time: float = np.inf,
+                    payload_only: bool = True):
         """
         wrapper on PUT/results ('start_time':-np.inf, 'final_time':np.inf)
 
@@ -231,7 +239,10 @@ class BopTestSimIntegrationLocal:
         """
         args = {'point_names': point_names, 'start_time': start_time, 'final_time': final_time}
         res = requests.put('{0}/results'.format(self.url), data=args).json()
-        return res
+        if payload_only:
+            return res["payload"]
+        else:
+            return res
 
     def get_kpi(self, payload_only=True):
         """
@@ -297,6 +308,24 @@ class BopTestSimIntegrationLocal:
         else:
             return res
 
+    def retrieve_current_results(self, point_names: list = None):
+        """
+        wrapper on self.put_results.
+
+        Note: if point_names is None, it will use all available measurements from GET/measurements.
+
+        EXAMPLE
+        retrieve_current_results()
+        >> {'CO2RooAir_y': 902.1903572521802, 'PHea_y': 0.0, 'TRooAir_y': 295.2581130389562, 'time': 9000.0}
+        """
+        # if not self.has_initialized:
+        #     _log.warning("The testcase is not initialized yet. The result might not be valid.")
+        if point_names is None:
+            point_names = self.get_measurements()
+        res: dict = self.put_results(point_names)
+        res_current = {k: v[-1] for k, v in res.items()}
+        return res_current
+
 
 class BopTestSimIntegration:
     """
@@ -358,7 +387,7 @@ if __name__ == "__main__":
     res = bp_sim.get_step()
     print("bp_sim.get_step()")
     print(res)
-    u = {'oveHeaPumY_u':0.5, 'oveHeaPumY_activate': 1}
+    u = {'oveHeaPumY_u': 0.5, 'oveHeaPumY_activate': 1}
     u = None
     res = bp_sim.post_advance(data=u)
     print(res)
@@ -367,11 +396,11 @@ if __name__ == "__main__":
     print("========= bp_sim.retrieve_time_info()")
     print(res)
 
-    points = bp_sim.get_measurements()
-    res = bp_sim.put_results(points)
-    print("========= bp_sim.put_results(['reaTZon_y'])")
-    print(res)
-    print(res.keys())
+    # points = bp_sim.get_measurements()
+    # res = bp_sim.put_results(points)
+    # print("========= bp_sim.put_results(['reaTZon_y'])")
+    # print(res)
+    # print(res.keys())
 
     #
     # res = bp_sim.put_results(["reaTZon_y"], start_time=29 * 3600 * 24, final_time=29 * 3600 * 24 + 10)
@@ -381,25 +410,4 @@ if __name__ == "__main__":
     # res = bp_sim.get_kpi()
     # print(res)
 
-    print("+++++++++++++++++========!!!!!!!!!!!!!!!!!!!!!1")
-
-    scenario = {"time_period": "test_day", "electricity_price": "dynamic"}
-    res = bp_sim.put_scenario(**scenario)
-    print("======== bp_sim.put_scenario(**scenario")
-    print(res)
-
-    res = bp_sim.get_scenario()
-    print("======== bp_sim.get_scenario()")
-    print(res)
-
-    res = bp_sim.post_advance(data=u)
-    print(res)
-
-    print("======== bp_sim.retrieve_time_info()")
-    print(bp_sim.retrieve_time_info())
-
-    points = bp_sim.get_measurements()
-    res = bp_sim.put_results(points)
-    print("========= bp_sim.put_results(['reaTZon_y'])")
-    # print(res)
-    print(res.keys())
+    res = bp_sim.retrieve_current_results()
