@@ -159,7 +159,6 @@ class BopTestAgent(Agent):
         interface.populate_output_measurements()
 
         logger.info("======== run workflow completed.======")
-        print(f"======= kpi {kpi}")
 
         # Report KPIs
         kpi: dict = self.bp_sim.get_kpi()
@@ -167,6 +166,8 @@ class BopTestAgent(Agent):
         # TODO: refactor topic value to config
         default_prefix = "PNNL/BUILDING/UNIT/"
         self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "kpi", message=[kpi])
+        meas_result = self.bp_sim.retrieve_current_results()
+        self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "measurement", message=[meas_result])
         # self.vip.pubsub.publish(peer='pubsub', topic=default_prefix + "result", message=str(res))
         # TODO: publish custom_kpi_result forecasts
 

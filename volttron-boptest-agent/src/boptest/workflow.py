@@ -183,9 +183,9 @@ class Interface:
         kpi = self.bp_sim.get_kpi()
         measurements = self.bp_sim.get_measurements(keys_only=False)
         inputs = self.bp_sim.get_inputs(keys_only=False)
-        points = list(measurements.keys()) + list(inputs.keys())
-        results = self.bp_sim.put_results(point_names=points, start_time=self.start_time, final_time=self.final_time)
-
+        # points = list(measurements.keys()) + list(inputs.keys())
+        # results = self.bp_sim.put_results(point_names=points, start_time=self.start_time, final_time=self.final_time)
+        results = self.bp_sim.retrieve_current_results()
         # # Store the result data
         # self._results = res
         # self._kpi = kpi
@@ -264,38 +264,7 @@ class Interface:
         # Report KPIs
         kpi = self.bp_sim.get_kpi()
         logger.info('\nKPI RESULTS \n-----------')
-        for key in kpi.keys():
-            if key == 'ener_tot':
-                unit = 'kWh/m$^2$'
-            elif key == 'pele_tot':
-                unit = 'kW/m$^2$'
-            elif key == 'pgas_tot':
-                unit = 'kW/m$^2$'
-            elif key == 'pdih_tot':
-                unit = 'kW/m$^2$'
-            elif key == 'tdis_tot':
-                unit = 'Kh/zone'
-            elif key == 'idis_tot':
-                unit = 'ppmh/zone'
-            elif key == 'cost_tot':
-                unit = 'Euro or \$/m$^2$'
-            elif key == 'emis_tot':
-                unit = 'KgCO2/m$^2$'
-            elif key == 'time_rat':
-                unit = 's/s'
-            else:
-                unit = None
-            logging.info('{0}: {1} {2}'.format(key, kpi[key], unit))
-
-    def populate_output_measurements(self):
-        # VIEW RESULTS
-        # -------------------------------------------------------------------------
-        # Report KPIs
-        measurement_keys = self.bp_sim.get_measurements()
-        measurements = self.bp_sim.put_results(measurement_keys)["payload"]
-        logger.info('\nmeasurements RESULTS \n-----------')
-        logging.info(measurements)
-        # for key in measurements.keys():
+        # for key in kpi.keys():
         #     if key == 'ener_tot':
         #         unit = 'kWh/m$^2$'
         #     elif key == 'pele_tot':
@@ -317,6 +286,16 @@ class Interface:
         #     else:
         #         unit = None
         #     logging.info('{0}: {1} {2}'.format(key, kpi[key], unit))
+        logging.info(kpi)
+
+    def populate_output_measurements(self):
+        # VIEW RESULTS
+        # -------------------------------------------------------------------------
+        # Report KPIs
+        measurement_keys = self.bp_sim.get_measurements()
+        measurements = self.bp_sim.retrieve_current_results()
+        logger.info('\nMEASUREMENT RESULTS \n-----------')
+        logging.info(measurements)
 
     def run_workflow(self):
         """
