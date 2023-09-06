@@ -12,20 +12,8 @@ import pathlib
 
 import gevent
 import pytest
-import os
-from volttron.client.vip.agent import build_agent
-from time import sleep
 import datetime
-# from boptest_integration.boptest_integration import BopTestSimIntegrationLocal
 from boptest.agent import BopTestAgent
-
-import random
-import subprocess
-from volttron.utils import is_volttron_running
-import json
-# from utils.testing_utils import *
-from volttrontesting.fixtures.volttron_platform_fixtures import volttron_instance
-
 import logging
 
 logging_logger = logging.getLogger(__name__)
@@ -34,51 +22,12 @@ logging_logger.setLevel(logging.INFO)
 boptest_vip_identity = "volttron_boptest_agent"
 
 
-@pytest.fixture(scope="module")
-def volttron_home():
-    """
-    VOLTTRON_HOME environment variable suggested to setup at pytest.ini [env]
-    """
-    volttron_home: str = os.getenv("VOLTTRON_HOME")
-    assert volttron_home
-    return volttron_home
-
-
-@pytest.mark.skip(reason="for debugging purpose only")
-def test_volttron_home_fixture(volttron_home):
-    assert volttron_home
-    print(volttron_home)
-
-
-# def test_testing_file_path():
-#     parent_path = os.getcwd()
-#     boptest_agent_config_path = os.path.join(parent_path, "testcase1.config")
-#     # print(boptest_agent_config_path)
-#     logging_logger.info(f"test_testing_file_path {boptest_agent_config_path}")
-
-
 @pytest.mark.skip(reason="for debugging purpose only")
 def test_volttron_instance_fixture(volttron_instance):
     print(volttron_instance)
     logging_logger.info(f"=========== volttron_instance_new.volttron_home: {volttron_instance.volttron_home}")
     logging_logger.info(f"=========== volttron_instance_new.skip_cleanup: {volttron_instance.skip_cleanup}")
     logging_logger.info(f"=========== volttron_instance_new.vip_address: {volttron_instance.vip_address}")
-
-
-@pytest.fixture(scope="module")
-def vip_agent(volttron_instance):
-    # build a vip agent
-    a = volttron_instance.build_agent()
-    print(a)
-    return a
-
-
-@pytest.mark.skip(reason="for debugging purpose only")
-def test_vip_agent_fixture(vip_agent):
-    print(vip_agent)
-    logging_logger.info(f"=========== vip_agent: {vip_agent}")
-    logging_logger.info(f"=========== vip_agent.core.identity: {vip_agent.core.identity}")
-    logging_logger.info(f"=========== vip_agent.vip.peerlist().get(): {vip_agent.vip.peerlist().get()}")
 
 
 @pytest.fixture(scope="module")
