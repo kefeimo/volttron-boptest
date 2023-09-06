@@ -23,12 +23,12 @@ logging_logger.setLevel(logging.INFO)
 boptest_vip_identity = "volttron_boptest_agent"
 
 
-@pytest.mark.skip(reason="for debugging purpose only")
-def test_volttron_instance_fixture(volttron_instance):
-    print(volttron_instance)
-    logging_logger.info(f"=========== volttron_instance_new.volttron_home: {volttron_instance.volttron_home}")
-    logging_logger.info(f"=========== volttron_instance_new.skip_cleanup: {volttron_instance.skip_cleanup}")
-    logging_logger.info(f"=========== volttron_instance_new.vip_address: {volttron_instance.vip_address}")
+@pytest.fixture(scope="module")
+def vip_agent(volttron_instance):
+    # build a vip agent
+    a = volttron_instance.build_agent()
+    print(a)
+    return a
 
 
 @pytest.fixture(scope="module")
