@@ -15,6 +15,7 @@ import pytest
 import datetime
 from boptest.agent import BopTestAgent
 import logging
+from volttrontesting.fixtures.volttron_platform_fixtures import volttron_instance
 
 logging_logger = logging.getLogger(__name__)
 logging_logger.setLevel(logging.INFO)
