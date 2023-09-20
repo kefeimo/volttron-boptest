@@ -4,8 +4,6 @@ It utilizes a vip agent to evoke the RPC calls.
 The volltron instance and boptest-agent will be started.
 A boptest simulation is assumed to be running locally, (including for .github/workflows)
 Note: several fixtures are used
-    volttron_platform_wrapper
-    vip_agent
     boptest_agent
 """
 import pathlib
@@ -22,13 +20,6 @@ logging_logger.setLevel(logging.INFO)
 
 boptest_vip_identity = "volttron_boptest_agent"
 
-
-@pytest.fixture(scope="module")
-def vip_agent(volttron_instance):
-    # build a vip agent
-    a = volttron_instance.build_agent()
-    print(a)
-    return a
 
 
 @pytest.fixture(scope="module")
@@ -80,23 +71,15 @@ def boptest_agent(volttron_instance) -> dict:
     logging_logger.info(
         f"=========== volttron_instance.is_agent_running(uuid): {volttron_instance.is_agent_running(uuid)}")
     # TODO: get retry_call back
-    return {"uuid": uuid, "pid": pid}
+    yield {"uuid": uuid, "pid": pid}
 
 
-def test_install_boptest_agent_fixture(boptest_agent, vip_agent, volttron_instance):
+def test_install_boptest_agent_fixture(boptest_agent, volttron_instance):
     puid = boptest_agent
     print(puid)
+    vip_agent = volttron_instance.dynamic_agent
     logging_logger.info(f"=========== boptest_agent ids: {boptest_agent}")
     logging_logger.info(f"=========== vip_agent.vip.peerlist().get(): {vip_agent.vip.peerlist().get()}")
     logging_logger.info(f"=========== volttron_instance_new.is_agent_running(puid): "
                         f"{volttron_instance.is_agent_running(boptest_agent['uuid'])}")
     assert boptest_agent
-
-
-def test_dummy(vip_agent, boptest_agent):
-    peer = boptest_vip_identity
-    method = BopTestAgent.rpc_dummy
-    peer_method = method.__name__  # "rpc_dummy"
-    # peer_method = "rpc_dummy"
-    rs = vip_agent.vip.rpc.call(peer, peer_method).get(timeout=5)
-    print(datetime.datetime.now(), "rs: ", rs)
