@@ -1,4 +1,4 @@
-name: Run Pytests
+name: Run volttron-lib-boptest-integration Pytests
 
 on:
   push:
@@ -25,7 +25,7 @@ env:
 
 jobs:
 
-  run-tests:
+  run-boptest-integration-lib-tests:
     strategy:
       matrix:
         os: ["ubuntu-22.04"]
@@ -42,7 +42,7 @@ jobs:
       #       check-out repo and set-up python
       #----------------------------------------------
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python }}
         id: setup-python
@@ -61,9 +61,41 @@ jobs:
           installer-parallel: true
 
       #----------------------------------------------
+      # Setup boptest server at local
+      #----------------------------------------------
+      - name: Git clone Boptest Repo
+        run:
+          git clone https://github.com/ibpsa/project1-boptest.git
+
+#      - name: validate repo
+#        run:
+#          ls -la project1-boptest
+
+      - name: install docker-compose version v1.29.2
+        run: |
+          sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: run docker-compose repo
+        run: |
+          echo === Running test cases ===
+          docker-compose -f  ./project1-boptest/docker-compose.yml up -d
+          echo === Completed test cases ===
+
+      - name: validate docker-compose up
+        run: |
+          sleep 5
+          docker container ls
+          echo === validating docker-compose up ===
+          curl http://127.0.0.1:5000/measurements
+          curl http://127.0.0.1:5000/name
+          echo === Completed docker-compose up validation===
+
+      #----------------------------------------------
       # install your root project, and run tests.
       #----------------------------------------------
       - name: Install library and run tests
         run: |
+          cd volttron-lib-boptest-integration
           poetry install --no-interaction
-          poetry run pytest
+          poetry run pytest ./tests/*
