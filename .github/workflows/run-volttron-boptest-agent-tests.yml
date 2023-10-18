@@ -66,6 +66,8 @@ jobs:
       - name: Git clone Boptest Repo
         run: |
           git clone https://github.com/ibpsa/project1-boptest.git
+          git fetch --all --tags
+          git tag
           git checkout v0.4.0
           
 
