@@ -29,13 +29,13 @@ Basic workflow examples
 The basic simulation workflow include the following stages: configuration, initialize, advance, output results.
 BOPTEST consists of several building emulators and boundary conditions (so-called “test cases”) that
 are made rapidly and repeatably accessible for control by test controllers through a developed run-time environment (RTE).
-There are several workflow examples available at `/examples <./examples>`_.
+There are several workflow examples available at `/examples <https://github.com/eclipse-volttron/volttron-boptest/tree/main/volttron-lib-boptest-integration/examples>`_.
 (Note: the example usecase must match the test case that is running.)
 
 testcase1 example
 ============
 
-In this section, we will dive deeper into the `/examples/testcase1.py <./examples/testcase1.py>`_. example.
+In this section, we will dive deeper into the `/examples/testcase1.py <https://github.com/eclipse-volttron/volttron-boptest/blob/main/volttron-lib-boptest-integration/examples/testcase1.py>`_. example.
 
 .. code-block:: python
     :linenos:
@@ -75,7 +75,7 @@ In this section, we will dive deeper into the `/examples/testcase1.py <./example
     if __name__ == "__main__":
         main()
 
-To run this example, make sure the testcase1 of Boptest simulation is running. Then run `python <path-to-example/testcase1.py`.
+To run this example, make sure the testcase1 of Boptest simulation is running. Then run `python <path-to-example>/testcase1.py`.
 
 .. code-block:: bash
 
@@ -130,7 +130,7 @@ The configuration is a dictionary include the following sections:
 * scenario:
     * Set current test scenario. Setting time_period results in similar behavior to PUT /initialize, except uses a pre-determined start time and warmup period as defined within BOPTEST according to the selected scenario. Arguments for the PUT/scenario endpoint.
     * Arguments are "time_period" and "electricity_price". Both accept string values.
-    * An example can be found in `/examples/testcase1_scenario.py <./examples/testcase1_scenario.py>`_.
+    * An example can be found in `/examples/testcase1_scenario.py <https://github.com/eclipse-volttron/volttron-boptest/blob/main/volttron-lib-boptest-integration/examples/testcase1_scenario.py>`_.
     * Note: only either "intialize" or "scenario" should be configured. (Left the other one undefined or set to "None")
 * step:
     * This is the amount of simulation time (in second) that will pass when the next control step is taken. API wrapper for the PUT/step endpoint.
@@ -146,7 +146,7 @@ The configuration is a dictionary include the following sections:
         * u: initial inputs. Note the accepted inputs are testcase-specific, and the user can use the "GET/inputs" entry point to query the available control signal input point names (u) and metadata.
 
 The simulation result at each timestamp can be retrieved within the result "payload". It is the second return value when using `interface.run_workflow()`.
-Since the result is very lenthy, we only display the visulization as below. (Please see `/examples/testcase_examples.ipynb <./examples/testcase_examples.ipynb>`_ for more details about the plotting.)
+Since the result is very lenthy, we only display the visulization as below. (Please see `/examples/testcase_examples.ipynb <https://github.com/eclipse-volttron/volttron-boptest/blob/develop/volttron-lib-boptest-integration/examples/testcase_examples.ipynb>`_ for more details about the plotting.)
 
 .. figure:: testcase1_output.png
     :scale: 100%
