@@ -23,6 +23,10 @@ the volttron-lib-boptest-integration can be installed in an activated environmen
 
     pip install volttron-lib-boptest-integration
 
+.. note::
+    The current version of the Boptest Integration Library is developed and tested against boptest `v0.4.0 <https://github.com/ibpsa/project1-boptest/releases/tag/v0.4.0>`_.
+    Running boptest simulation of different version might lead unexpected outcomes.
+
 Basic workflow examples
 ============
 

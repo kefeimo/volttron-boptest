@@ -15,11 +15,15 @@ to interact with the boptest server.
 Requirements
 ============
 
-the volttron-lib-boptest-integration can be installed in an activated environment with:
+the Boptest Agent can be installed in an activated environment with:
 
 .. code-block:: bash
 
     pip install volttron-boptest
+
+.. note::
+    The current version of the Boptest Agent is developed and tested against boptest `v0.4.0 <https://github.com/ibpsa/project1-boptest/releases/tag/v0.4.0>`_.
+    Running boptest simulation of different version might lead unexpected outcomes.
 
 Agent Configuration Example
 ============
